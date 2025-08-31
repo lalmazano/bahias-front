@@ -8,14 +8,31 @@ jobs:
   deploy:
     runs-on: [self-hosted]  # etiquetas del runner
     steps:
-      - name: Ejecutar init.sh localmente
+      - name: Mostrar usuario
+        run: whoami
+
+      - name: Ir al directorio del proyecto
+        working-directory: /opt/repositorio/bahias-front
+        run: pwd
+
+      - name: Actualizar código
+        working-directory: /opt/repositorio/bahias-front
+        run: git pull origin main
+
+      - name: Construir contenedores
+        working-directory: /opt/repositorio/bahias-front
+        run: docker compose build
+
+      - name: Reiniciar servicios
+        working-directory: /opt/repositorio/bahias-front
         run: |
-              whoami
-              cd /opt/repositorio/bahias-front/
-              git pull origin main
-              docker compose build
-              docker compose down 
-              docker compose up -d
-              docker builder prune -f 
-              docker image prune -f
-              echo "Despliegue completado"
+          docker compose down
+          docker compose up -d
+
+      - name: Limpieza de imágenes
+        run: |
+          docker builder prune -f 
+          docker image prune -f
+
+      - name: Mensaje final
+        run: echo "✅ Despliegue completado"
