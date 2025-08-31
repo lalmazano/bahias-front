@@ -1,6 +1,6 @@
 #!/bin/bash
 # Este script actualiza el repositorio, reconstruye y reinicia los contenedores de Docker.
-
+whoami
 # Navegar al directorio del proyecto
 cd /opt/repositorio/bahias-front
 # Actualizar el repositorio
