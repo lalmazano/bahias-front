@@ -5,33 +5,19 @@ import 'package:shared_preferences/shared_preferences.dart';
 class SecureStorageService {
   static const _tokenKey = 'auth_token';
 
-  final FlutterSecureStorage? _secure =
-      kIsWeb ? null : const FlutterSecureStorage();
-
+  // 🔹 Temporal: no guardar nada, solo simular
   Future<void> saveToken(String token) async {
-    if (kIsWeb) {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_tokenKey, token);
-    } else {
-      await _secure!.write(key: _tokenKey, value: token);
-    }
+    // print('saveToken ignorado: $token');
+    return;
   }
 
   Future<String?> getToken() async {
-    if (kIsWeb) {
-      final prefs = await SharedPreferences.getInstance();
-      return prefs.getString(_tokenKey);
-    } else {
-      return _secure!.read(key: _tokenKey);
-    }
+    // 🔹 Devuelve null siempre, como si no hubiera sesión guardada
+    return null;
   }
 
   Future<void> deleteToken() async {
-    if (kIsWeb) {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.remove(_tokenKey);
-    } else {
-      await _secure!.delete(key: _tokenKey);
-    }
+    // print('deleteToken ignorado');
+    return;
   }
 }
