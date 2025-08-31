@@ -11,4 +11,11 @@ jobs:
       - name: Ejecutar init.sh localmente
         run: |
               whoami
-              /opt/repositorio/bahias-front/init.sh
+              cd /opt/repositorio/bahias-front/
+              git pull origin main
+              docker compose build
+              docker compose down 
+              docker compose up -d
+              docker builder prune -f 
+              docker image prune -f
+              echo "Despliegue completado"
