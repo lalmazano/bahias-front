@@ -1,0 +1,12 @@
+name: Run init.sh on self-hosted runner
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: [self-hosted]  # etiquetas del runner
+    steps:
+      - name: Ejecutar init.sh localmente
+        run: /opt/repositorio/bahias-front/init.sh
