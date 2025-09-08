@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../models/bay.dart';
+import '../../data/models/bay.dart';
 import './widgets/app_drawer.dart';
 
 class BaysMenuPage extends StatelessWidget {

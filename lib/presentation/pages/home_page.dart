@@ -7,15 +7,249 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    // Valores de ejemplo (puedes reemplazarlos con datos reales del backend)
+    final mantenimiento = 0;
+    final libres = 0;
+    final reserva = 0;
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Inicio')),
+      appBar: AppBar(
+        title: const Text('Inicio'),
+        centerTitle: true,
+        elevation: 0,
+      ),
       drawer: const AppDrawer(),
-      body: Center(
-        child: FilledButton.icon(
-          onPressed: () => context.go('/bays'),
-          icon: const Icon(Icons.view_module),
-          label: const Text('Ver Bahías'),
+      body: Stack(
+        children: [
+          const _BackgroundGradient(),
+          SafeArea(
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 720),
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Bienvenido a',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: theme.colorScheme.onSurface.withOpacity(0.8),
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Aplicación de Bahías',
+                        style: theme.textTheme.displaySmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -0.5,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 20),
+                      Text(
+                        'Administra, monitorea y consulta información de tus bahías\n'
+                        'de forma simple y rápida.',
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          color: theme.colorScheme.onSurface.withOpacity(0.7),
+                          height: 1.3,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 28),
+
+                      // Resumen rápido
+                      _QuickCard(
+                        title: 'Resumen rápido',
+                        items: [
+                          _QuickItem(
+                            icon: Icons.build_outlined,
+                            label: 'En mantenimiento',
+                            value: '$mantenimiento',
+                          ),
+                          _QuickItem(
+                            icon: Icons.check_circle_outline,
+                            label: 'Libres',
+                            value: '$libres',
+                          ),
+                          _QuickItem(
+                            icon: Icons.bookmark_border,
+                            label: 'En reserva',
+                            value: '$reserva',
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 22),
+
+                      // Acciones principales con GoRouter
+                      Wrap(
+                        alignment: WrapAlignment.center,
+                        spacing: 12,
+                        runSpacing: 12,
+                        children: [
+                          FilledButton.icon(
+                            icon: const Icon(Icons.dashboard_customize_rounded),
+                            label: const Text('Ir al panel'),
+                            onPressed: () {
+                              context.go('/bays'); // acceso al menú de bahías
+                            },
+                          ),
+                          OutlinedButton.icon(
+                            icon: const Icon(Icons.table_chart_outlined),
+                            label: const Text('Ver reportes'),
+                            onPressed: () {
+                              context.go('/reportes'); // ruta de reportes
+                            },
+                          ),
+                          TextButton.icon(
+                            icon: const Icon(Icons.settings_outlined),
+                            label: const Text('Configuración'),
+                            onPressed: () {
+                              context.go('/configuracion'); // ruta de configuración
+                            },
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 36),
+                      Opacity(
+                        opacity: 0.6,
+                        child: Text(
+                          'v1.0.0 • ${DateTime.now().year}',
+                          style: theme.textTheme.bodySmall,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BackgroundGradient extends StatelessWidget {
+  const _BackgroundGradient();
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            scheme.primaryContainer.withOpacity(0.35),
+            scheme.surfaceVariant.withOpacity(0.25),
+            scheme.surface,
+          ],
         ),
+      ),
+    );
+  }
+}
+
+class _QuickCard extends StatelessWidget {
+  final String title;
+  final List<_QuickItem> items;
+  const _QuickCard({required this.title, required this.items});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Card(
+      elevation: 2,
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Icon(Icons.insights_outlined, color: theme.colorScheme.primary),
+                const SizedBox(width: 8),
+                Text(
+                  title,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: items
+                  .map((e) => Expanded(
+                        child: _QuickStat(
+                          icon: e.icon,
+                          label: e.label,
+                          value: e.value,
+                        ),
+                      ))
+                  .toList(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _QuickItem {
+  final IconData icon;
+  final String label;
+  final String value;
+  const _QuickItem({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+}
+
+class _QuickStat extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  const _QuickStat({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final labelStyle = theme.textTheme.bodySmall?.copyWith(
+      color: theme.colorScheme.onSurface.withOpacity(0.65),
+    );
+    final valueStyle =
+        theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 22, color: theme.colorScheme.primary),
+          const SizedBox(width: 8),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(value, style: valueStyle),
+              Text(label, style: labelStyle),
+            ],
+          ),
+        ],
       ),
     );
   }
