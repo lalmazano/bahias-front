@@ -55,8 +55,8 @@ class _BaysMenuPageState extends State<BaysMenuPage> {
                 controller: puestosController,
                 decoration: const InputDecoration(
                   labelText: 'Número de puestos',
-                  keyboardType: TextInputType.number,
                 ),
+                keyboardType: TextInputType.number, // Corregido aquí
               ),
               DropdownButton<BayStatus>(
                 value: selectedStatus,
