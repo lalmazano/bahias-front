@@ -33,7 +33,6 @@ class _BaysMenuPageState extends State<BaysMenuPage> {
 
   // Mostrar el diálogo para agregar una nueva bahía
   void _showAddBayDialog() {
-    final TextEditingController nameController = TextEditingController();
     final TextEditingController puestosController = TextEditingController();
     BayStatus selectedStatus = BayStatus.libre; // Valor inicial del estado
 
@@ -45,19 +44,17 @@ class _BaysMenuPageState extends State<BaysMenuPage> {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(
-                controller: nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Nombre de la bahía',
-                ),
-                // El nombre se autogenerará, por lo que esta línea es opcional si quieres que el nombre sea automático
-              ),
+              // El nombre se autogenerará, no necesitamos un campo de texto para el nombre
+              Text('Nombre de la bahía: Bahía ${bays.length + 1}'), // Asigna el nombre dinámico
               TextField(
                 controller: puestosController,
                 decoration: const InputDecoration(
                   labelText: 'Número de puestos',
                 ),
-                keyboardType: TextInputType.number, // Corregido aquí
+                keyboardType: TextInputType.number, // Solo aceptar números
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly, // Solo permite dígitos
+                ],
               ),
               DropdownButton<BayStatus>(
                 value: selectedStatus,
@@ -84,20 +81,23 @@ class _BaysMenuPageState extends State<BaysMenuPage> {
             ),
             ElevatedButton(
               onPressed: () {
-                // Generar el ID de la nueva bahía basado en el número de bahías existentes
-                String newBayId = 'B${bays.length + 1}'; // Esto generará 'B5' si hay 4 bahías
+                // Validar que el campo de puestos no esté vacío
+                if (puestosController.text.isNotEmpty) {
+                  // Generar el ID de la nueva bahía basado en el número de bahías existentes
+                  String newBayId = 'B${bays.length + 1}'; // Esto generará 'B5' si hay 4 bahías
 
-                // Crear nueva bahía
-                setState(() {
-                  bays.add(
-                    Bay(
-                      id: newBayId, // Asignamos el ID generado
-                      nombre: nameController.text.isEmpty ? 'Bahía ${bays.length + 1}' : nameController.text, // Si el nombre está vacío, usamos un nombre por defecto
-                      estado: selectedStatus,
-                      puestos: int.parse(puestosController.text),
-                    ),
-                  );
-                });
+                  // Crear nueva bahía
+                  setState(() {
+                    bays.add(
+                      Bay(
+                        id: newBayId, // Asignamos el ID generado
+                        nombre: 'Bahía ${bays.length + 1}', // Nombre dinámico
+                        estado: selectedStatus,
+                        puestos: int.parse(puestosController.text),
+                      ),
+                    );
+                  });
+                }
                 Navigator.of(context).pop(); // Cerrar el diálogo después de agregar
               },
               child: const Text('Agregar bahía'),
