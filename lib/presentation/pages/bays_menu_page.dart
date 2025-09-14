@@ -47,18 +47,42 @@ class BaysMenuPage extends StatelessWidget {
               color: color(bay.estado),
               child: InkWell(
                 onTap: () {
-                  // Navegar a la página de detalles de la bahía (puedes personalizar esta navegación)
-                  // Por ejemplo:
-                  // GoRouter.of(context).push('/bay_detail/${bay.id}');
+                  // Navegar a la página de detalles de la bahía usando el ID de la bahía
+                  context.go('/bays/${bay.id}');
                 },
-                child: Center(
-                  child: Text(
-                    bay.nombre,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
+                borderRadius: BorderRadius.circular(16),
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          CircleAvatar(
+                            backgroundColor: color(bay.estado).withOpacity(.15),
+                            child: Icon(Icons.directions_car, color: color(bay.estado)),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(child: Text(bay.nombre, style: const TextStyle(fontWeight: FontWeight.bold))),
+                        ],
+                      ),
+                      const Spacer(),
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: color(bay.estado).withOpacity(.15),
+                              borderRadius: BorderRadius.circular(999),
+                              border: Border.all(color: color(bay.estado)),
+                            ),
+                            child: Text(bay.estado.name),
+                          ),
+                          const Spacer(),
+                          Text('Puestos: ${bay.puestos}', style: const TextStyle(fontWeight: FontWeight.w600)),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
               ),
