@@ -53,61 +53,79 @@ class BaysMenuPage extends StatelessWidget {
                 borderRadius: BorderRadius.circular(16),
                 child: Padding(
                   padding: const EdgeInsets.all(16), // Ajuste en el padding para más espacio
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  child: Stack(
                     children: [
-                      Row(
+                      // Colocamos el contenido de la bahía (texto y detalles)
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          CircleAvatar(
-                            backgroundColor: color(bay.estado).withOpacity(0.4), // Fondo más oscuro
-                            child: Icon(
-                              Icons.directions_car,
-                              color: Colors.white, // Aseguramos que el ícono sea blanco
-                              size: 28, // Aumento del tamaño del ícono
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              bay.nombre,
-                              style: const TextStyle(
-                                fontSize: 22, // Aumento del tamaño de la fuente
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white, // Asegura que el texto sea blanco
+                          Row(
+                            children: [
+                              CircleAvatar(
+                                backgroundColor: color(bay.estado).withOpacity(0.15),
+                                child: Icon(
+                                  Icons.directions_car,
+                                  color: Colors.white,
+                                  size: 28, // Aumento del tamaño del ícono
+                                ),
                               ),
-                            ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  bay.nombre,
+                                  style: const TextStyle(
+                                    fontSize: 22, // Aumento del tamaño de la fuente
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white, // Asegura que el texto sea blanco
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: color(bay.estado).withOpacity(0.15),
+                                  borderRadius: BorderRadius.circular(999),
+                                  border: Border.all(color: color(bay.estado)),
+                                ),
+                                child: Text(
+                                  bay.estado.name,
+                                  style: const TextStyle(
+                                    fontSize: 16, // Aumento del tamaño de la fuente para el estado
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white, // Asegura que el texto sea blanco
+                                  ),
+                                ),
+                              ),
+                              const Spacer(),
+                              Text(
+                                'Puestos: ${bay.puestos}',
+                                style: const TextStyle(
+                                  fontSize: 16, // Aumento del tamaño de la fuente para "Puestos"
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white, // Asegura que el texto sea blanco
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: color(bay.estado).withOpacity(0.15),
-                              borderRadius: BorderRadius.circular(999),
-                              border: Border.all(color: color(bay.estado)),
-                            ),
-                            child: Text(
-                              bay.estado.name,
-                              style: const TextStyle(
-                                fontSize: 16, // Aumento del tamaño de la fuente para el estado
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white, // Asegura que el texto sea blanco
-                              ),
-                            ),
+                      // Colocamos el ícono en la parte superior derecha
+                      Positioned(
+                        top: 8, // Distancia desde la parte superior
+                        right: 8, // Distancia desde la parte derecha
+                        child: CircleAvatar(
+                          backgroundColor: color(bay.estado).withOpacity(0.7), // Fondo oscuro para el ícono
+                          child: Icon(
+                            Icons.directions_car,
+                            color: Colors.white,
+                            size: 28, // Tamaño del ícono
                           ),
-                          const Spacer(),
-                          Text(
-                            'Puestos: ${bay.puestos}',
-                            style: const TextStyle(
-                              fontSize: 16, // Aumento del tamaño de la fuente para "Puestos"
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white, // Asegura que el texto sea blanco
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
                     ],
                   ),
