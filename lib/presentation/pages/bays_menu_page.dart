@@ -50,6 +50,7 @@ class _BaysMenuPageState extends State<BaysMenuPage> {
                 decoration: const InputDecoration(
                   labelText: 'Nombre de la bahía',
                 ),
+                // El nombre se autogenerará, por lo que esta línea es opcional si quieres que el nombre sea automático
               ),
               TextField(
                 controller: puestosController,
@@ -83,12 +84,15 @@ class _BaysMenuPageState extends State<BaysMenuPage> {
             ),
             ElevatedButton(
               onPressed: () {
+                // Generar el ID de la nueva bahía basado en el número de bahías existentes
+                String newBayId = 'B${bays.length + 1}'; // Esto generará 'B5' si hay 4 bahías
+
                 // Crear nueva bahía
                 setState(() {
                   bays.add(
                     Bay(
-                      id: 'B${bays.length + 1}', // Generar un ID único
-                      nombre: nameController.text,
+                      id: newBayId, // Asignamos el ID generado
+                      nombre: nameController.text.isEmpty ? 'Bahía ${bays.length + 1}' : nameController.text, // Si el nombre está vacío, usamos un nombre por defecto
                       estado: selectedStatus,
                       puestos: int.parse(puestosController.text),
                     ),
