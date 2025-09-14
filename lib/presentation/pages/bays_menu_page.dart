@@ -3,31 +3,109 @@ import 'package:go_router/go_router.dart';
 import '../../data/models/bay.dart';
 import './widgets/app_drawer.dart';
 
-class BaysMenuPage extends StatelessWidget {
+class BaysMenuPage extends StatefulWidget {
   const BaysMenuPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final bays = <Bay>[
-      Bay(id: 'B1', nombre: 'Bahía 1', estado: BayStatus.libre, puestos: 3),
-      Bay(id: 'B2', nombre: 'Bahía 2', estado: BayStatus.ocupada, puestos: 2),
-      Bay(id: 'B3', nombre: 'Bahía 3', estado: BayStatus.mantenimiento, puestos: 4),
-      Bay(id: 'B4', nombre: 'Bahía 4', estado: BayStatus.libre, puestos: 1),
-    ];
+  _BaysMenuPageState createState() => _BaysMenuPageState();
+}
 
-    Color color(BayStatus s) {
-      switch (s) {
-        case BayStatus.libre:
-          return Colors.green;
-        case BayStatus.ocupada:
-          return Colors.pink;
-        case BayStatus.mantenimiento:
-          return Colors.orange;
-        default:
-          return Colors.grey;
-      }
+class _BaysMenuPageState extends State<BaysMenuPage> {
+  final List<Bay> bays = [
+    Bay(id: 'B1', nombre: 'Bahía 1', estado: BayStatus.libre, puestos: 3),
+    Bay(id: 'B2', nombre: 'Bahía 2', estado: BayStatus.ocupada, puestos: 2),
+    Bay(id: 'B3', nombre: 'Bahía 3', estado: BayStatus.mantenimiento, puestos: 4),
+    Bay(id: 'B4', nombre: 'Bahía 4', estado: BayStatus.libre, puestos: 1),
+  ];
+
+  Color color(BayStatus s) {
+    switch (s) {
+      case BayStatus.libre:
+        return Colors.green;
+      case BayStatus.ocupada:
+        return Colors.pink;
+      case BayStatus.mantenimiento:
+        return Colors.orange;
+      default:
+        return Colors.grey;
     }
+  }
 
+  // Mostrar el diálogo para agregar una nueva bahía
+  void _showAddBayDialog() {
+    final TextEditingController nameController = TextEditingController();
+    final TextEditingController puestosController = TextEditingController();
+    BayStatus selectedStatus = BayStatus.libre; // Valor inicial del estado
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Agregar nueva bahía'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(
+                  labelText: 'Nombre de la bahía',
+                ),
+              ),
+              TextField(
+                controller: puestosController,
+                decoration: const InputDecoration(
+                  labelText: 'Número de puestos',
+                  keyboardType: TextInputType.number,
+                ),
+              ),
+              DropdownButton<BayStatus>(
+                value: selectedStatus,
+                onChanged: (BayStatus? newValue) {
+                  setState(() {
+                    selectedStatus = newValue!;
+                  });
+                },
+                items: BayStatus.values.map((status) {
+                  return DropdownMenuItem(
+                    value: status,
+                    child: Text(status.name),
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Cerrar el diálogo
+              },
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                // Crear nueva bahía
+                setState(() {
+                  bays.add(
+                    Bay(
+                      id: 'B${bays.length + 1}', // Generar un ID único
+                      nombre: nameController.text,
+                      estado: selectedStatus,
+                      puestos: int.parse(puestosController.text),
+                    ),
+                  );
+                });
+                Navigator.of(context).pop(); // Cerrar el diálogo después de agregar
+              },
+              child: const Text('Agregar bahía'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Bahías')),
       drawer: const AppDrawer(),
@@ -134,6 +212,11 @@ class BaysMenuPage extends StatelessWidget {
             );
           },
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _showAddBayDialog,
+        child: const Icon(Icons.add),
+        tooltip: 'Agregar nueva bahía',
       ),
     );
   }
