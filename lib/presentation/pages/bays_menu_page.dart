@@ -59,10 +59,10 @@ class BaysMenuPage extends StatelessWidget {
                       Row(
                         children: [
                           CircleAvatar(
-                            backgroundColor: color(bay.estado).withOpacity(.15),
+                            backgroundColor: color(bay.estado).withOpacity(0.4), // Fondo más oscuro
                             child: Icon(
                               Icons.directions_car,
-                              color: color(bay.estado),
+                              color: Colors.white, // Aseguramos que el ícono sea blanco
                               size: 28, // Aumento del tamaño del ícono
                             ),
                           ),
@@ -85,7 +85,7 @@ class BaysMenuPage extends StatelessWidget {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                             decoration: BoxDecoration(
-                              color: color(bay.estado).withOpacity(.15),
+                              color: color(bay.estado).withOpacity(0.15),
                               borderRadius: BorderRadius.circular(999),
                               border: Border.all(color: color(bay.estado)),
                             ),
