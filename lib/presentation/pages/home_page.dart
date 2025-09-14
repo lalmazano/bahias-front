@@ -9,10 +9,36 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    // Valores de ejemplo (puedes reemplazarlos con datos reales del backend)
-    final mantenimiento = 0;
-    final libres = 0;
-    final reserva = 0;
+    // Ejemplo de bahías con estados dinámicos (esto debería ser de tu base de datos)
+    final List<Map<String, dynamic>> bahias = [
+      {'nombre': 'Bahía 1', 'estado': 'libre'},
+      {'nombre': 'Bahía 2', 'estado': 'ocupada'},
+      {'nombre': 'Bahía 3', 'estado': 'mantenimiento'},
+      {'nombre': 'Bahía 4', 'estado': 'libre'},
+      {'nombre': 'Bahía 5', 'estado': 'ocupada'},
+    ];
+
+    // Cálculos dinámicos de las bahías
+    int mantenimiento = 0;
+    int libres = 0;
+    int reserva = 0;
+    int ocupadas = 0;
+
+    for (var bahia in bahias) {
+      switch (bahia['estado']) {
+        case 'libre':
+          libres++;
+          break;
+        case 'ocupada':
+          ocupadas++;
+          break;
+        case 'mantenimiento':
+          mantenimiento++;
+          break;
+        default:
+          break;
+      }
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -79,6 +105,11 @@ class HomePage extends StatelessWidget {
                             icon: Icons.bookmark_border,
                             label: 'En reserva',
                             value: '$reserva',
+                          ),
+                          _QuickItem(
+                            icon: Icons.local_parking,
+                            label: 'Ocupadas',
+                            value: '$ocupadas',
                           ),
                         ],
                       ),
