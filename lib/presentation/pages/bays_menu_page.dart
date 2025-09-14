@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../data/models/bay.dart';
 import './widgets/app_drawer.dart';
-import 'package:flutter/services.dart'; // Asegúrate de importar esto
+import 'package:flutter/services.dart';
 
 class BaysMenuPage extends StatefulWidget {
   const BaysMenuPage({super.key});
@@ -57,6 +57,7 @@ class _BaysMenuPageState extends State<BaysMenuPage> {
                   FilteringTextInputFormatter.digitsOnly, // Solo permite dígitos
                 ],
               ),
+              // Aquí actualizamos el estado
               DropdownButton<BayStatus>(
                 value: selectedStatus,
                 onChanged: (BayStatus? newValue) {
