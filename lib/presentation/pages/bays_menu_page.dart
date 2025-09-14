@@ -52,7 +52,7 @@ class BaysMenuPage extends StatelessWidget {
                 },
                 borderRadius: BorderRadius.circular(16),
                 child: Padding(
-                  padding: const EdgeInsets.all(14),
+                  padding: const EdgeInsets.all(16), // Ajuste en el padding para más espacio
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -60,26 +60,53 @@ class BaysMenuPage extends StatelessWidget {
                         children: [
                           CircleAvatar(
                             backgroundColor: color(bay.estado).withOpacity(.15),
-                            child: Icon(Icons.directions_car, color: color(bay.estado)),
+                            child: Icon(
+                              Icons.directions_car,
+                              color: color(bay.estado),
+                              size: 28, // Aumento del tamaño del ícono
+                            ),
                           ),
                           const SizedBox(width: 8),
-                          Expanded(child: Text(bay.nombre, style: const TextStyle(fontWeight: FontWeight.bold))),
+                          Expanded(
+                            child: Text(
+                              bay.nombre,
+                              style: const TextStyle(
+                                fontSize: 22, // Aumento del tamaño de la fuente
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white, // Asegura que el texto sea blanco
+                              ),
+                            ),
+                          ),
                         ],
                       ),
-                      const Spacer(),
+                      const SizedBox(height: 12),
                       Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                             decoration: BoxDecoration(
                               color: color(bay.estado).withOpacity(.15),
                               borderRadius: BorderRadius.circular(999),
                               border: Border.all(color: color(bay.estado)),
                             ),
-                            child: Text(bay.estado.name),
+                            child: Text(
+                              bay.estado.name,
+                              style: const TextStyle(
+                                fontSize: 16, // Aumento del tamaño de la fuente para el estado
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white, // Asegura que el texto sea blanco
+                              ),
+                            ),
                           ),
                           const Spacer(),
-                          Text('Puestos: ${bay.puestos}', style: const TextStyle(fontWeight: FontWeight.w600)),
+                          Text(
+                            'Puestos: ${bay.puestos}',
+                            style: const TextStyle(
+                              fontSize: 16, // Aumento del tamaño de la fuente para "Puestos"
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white, // Asegura que el texto sea blanco
+                            ),
+                          ),
                         ],
                       ),
                     ],
