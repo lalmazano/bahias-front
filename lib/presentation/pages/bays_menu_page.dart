@@ -121,7 +121,7 @@ class BaysMenuPage extends StatelessWidget {
                         child: CircleAvatar(
                           backgroundColor: color(bay.estado).withOpacity(0.7), // Fondo oscuro para el ícono
                           child: Icon(
-                            Icons.directions_car,
+                            Icons.local_parking, // Cambié el ícono a uno de estacionamiento
                             color: Colors.white,
                             size: 28, // Tamaño del ícono
                           ),
