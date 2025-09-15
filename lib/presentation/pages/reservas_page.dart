@@ -29,6 +29,11 @@ class _ReservasPageState extends State<ReservasPage> {
   final TextEditingController bahiaController = TextEditingController();
   final TextEditingController fechaController = TextEditingController();
   final TextEditingController horaController = TextEditingController();
+  final TextEditingController duracionController = TextEditingController();
+
+  // Para almacenar la hora seleccionada
+  TimeOfDay _selectedTime = TimeOfDay.now();
+  int _duracionHoras = 1; // Duración por defecto (1 hora)
 
   // Mostrar el formulario para agregar una nueva reserva
   void _showAddReservationDialog() {
@@ -54,12 +59,28 @@ class _ReservasPageState extends State<ReservasPage> {
                   labelText: 'Fecha (YYYY-MM-DD)',
                 ),
               ),
-              // Campo para ingresar la hora
+              // Campo para seleccionar la hora de inicio
+              ListTile(
+                title: const Text('Hora de inicio'),
+                subtitle: Text('${_selectedTime.format(context)}'),
+                onTap: () {
+                  _selectTime(context);
+                },
+              ),
+              // Campo para seleccionar la duración de la reserva
               TextField(
-                controller: horaController,
+                controller: duracionController,
+                keyboardType: TextInputType.number,
                 decoration: const InputDecoration(
-                  labelText: 'Hora (HH:MM AM/PM)',
+                  labelText: 'Duración en horas (máximo 4)',
                 ),
+                onChanged: (value) {
+                  if (int.tryParse(value) != null) {
+                    setState(() {
+                      _duracionHoras = int.parse(value);
+                    });
+                  }
+                },
               ),
             ],
           ),
@@ -72,15 +93,17 @@ class _ReservasPageState extends State<ReservasPage> {
             ),
             ElevatedButton(
               onPressed: () {
+                // Validar los campos
                 if (bahiaController.text.isNotEmpty &&
                     fechaController.text.isNotEmpty &&
-                    horaController.text.isNotEmpty) {
+                    horaController.text.isNotEmpty &&
+                    _duracionHoras <= 4) {
                   // Agregar nueva reserva
                   setState(() {
                     reservas.add({
                       'bahia': bahiaController.text,
                       'fecha': fechaController.text,
-                      'hora': horaController.text,
+                      'hora': _selectedTime.format(context),
                       'estado': 'Pendiente',
                     });
                   });
@@ -89,6 +112,12 @@ class _ReservasPageState extends State<ReservasPage> {
                   bahiaController.clear();
                   fechaController.clear();
                   horaController.clear();
+                  duracionController.clear();
+                } else if (_duracionHoras > 4) {
+                  // Mostrar mensaje de error si la duración es mayor a 4 horas
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('La duración máxima es 4 horas')),
+                  );
                 }
                 Navigator.of(context).pop(); // Cerrar el diálogo después de agregar
               },
@@ -98,6 +127,19 @@ class _ReservasPageState extends State<ReservasPage> {
         );
       },
     );
+  }
+
+  // Método para seleccionar la hora de inicio
+  Future<void> _selectTime(BuildContext context) async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: _selectedTime,
+    );
+    if (picked != null && picked != _selectedTime) {
+      setState(() {
+        _selectedTime = picked;
+      });
+    }
   }
 
   @override

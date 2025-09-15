@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
-import './widgets/app_drawer.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:bahias_app/presentation/state/theme_provider.dart';  // Asegúrate de que la ruta esté correcta
+import 'package:bahias_app/presentation/pages/widgets/app_drawer.dart'; // Asegúrate de que esta ruta sea la correcta
 
-class ConfiguracionPage extends StatefulWidget {
+
+class ConfiguracionPage extends ConsumerStatefulWidget {
   const ConfiguracionPage({super.key});
 
   @override
   _ConfiguracionPageState createState() => _ConfiguracionPageState();
 }
 
-class _ConfiguracionPageState extends State<ConfiguracionPage> {
+class _ConfiguracionPageState extends ConsumerState<ConfiguracionPage> {
   // Variables para gestionar las configuraciones
   bool _darkMode = false; // Tema oscuro claro
   String _language = 'Español'; // Idioma
@@ -19,6 +22,10 @@ class _ConfiguracionPageState extends State<ConfiguracionPage> {
     setState(() {
       _darkMode = value;
     });
+
+    // Cambiar el tema en el provider de Riverpod
+    final themeMode = _darkMode ? ThemeMode.dark : ThemeMode.light;
+    ref.read(themeProvider.notifier).state = themeMode;  // Cambiar el tema usando el provider
   }
 
   // Método para cambiar el idioma
@@ -39,26 +46,22 @@ class _ConfiguracionPageState extends State<ConfiguracionPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Configuración')),
-      drawer: const AppDrawer(),
+      drawer: AppDrawer(), // Elimina const si AppDrawer no es un widget constante
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Título de la sección
             const Text(
               'Preferencias de la aplicación',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),
 
             // Opción para cambiar el tema
             ListTile(
-              leading: Icon(Icons.brightness_6),
-              title: Text('Modo oscuro/claro'),
+              leading: const Icon(Icons.brightness_6),
+              title: const Text('Modo oscuro/claro'),
               trailing: Switch(
                 value: _darkMode,
                 onChanged: _toggleTheme,
@@ -68,8 +71,8 @@ class _ConfiguracionPageState extends State<ConfiguracionPage> {
 
             // Opción para seleccionar el idioma
             ListTile(
-              leading: Icon(Icons.language),
-              title: Text('Idioma'),
+              leading: const Icon(Icons.language),
+              title: const Text('Idioma'),
               trailing: DropdownButton<String>(
                 value: _language,
                 items: <String>['Español', 'English']
@@ -80,7 +83,9 @@ class _ConfiguracionPageState extends State<ConfiguracionPage> {
                   );
                 }).toList(),
                 onChanged: (String? newLanguage) {
-                  _changeLanguage(newLanguage!);
+                  if (newLanguage != null) {
+                    _changeLanguage(newLanguage);
+                  }
                 },
               ),
             ),
@@ -88,25 +93,14 @@ class _ConfiguracionPageState extends State<ConfiguracionPage> {
 
             // Opción para activar/desactivar notificaciones
             ListTile(
-              leading: Icon(Icons.notifications),
-              title: Text('Notificaciones'),
+              leading: const Icon(Icons.notifications),
+              title: const Text('Notificaciones'),
               trailing: Switch(
                 value: _notifications,
                 onChanged: _toggleNotifications,
               ),
             ),
             const Divider(),
-
-            // Botón para cerrar sesión (si es necesario)
-            ListTile(
-              leading: Icon(Icons.exit_to_app),
-              title: Text('Cerrar sesión'),
-              onTap: () {
-                // Aquí va la lógica para cerrar sesión
-                // Por ejemplo, puedes navegar a la pantalla de inicio de sesión
-                // context.go('/login');
-              },
-            ),
           ],
         ),
       ),

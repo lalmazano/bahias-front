@@ -62,7 +62,7 @@ class _BaysMenuPageState extends State<BaysMenuPage> {
                 value: selectedStatus,
                 onChanged: (BayStatus? newValue) {
                   setState(() {
-                    selectedStatus = newValue!;
+                    selectedStatus = newValue!; // Actualizar el estado de la bahía
                   });
                 },
                 items: BayStatus.values.map((status) {
@@ -117,105 +117,207 @@ class _BaysMenuPageState extends State<BaysMenuPage> {
       drawer: const AppDrawer(),
       body: Padding(
         padding: const EdgeInsets.all(16),
-        child: GridView.builder(
-          itemCount: bays.length,
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: MediaQuery.of(context).size.width > 600 ? 4 : 2, // 4 columnas para pantallas grandes, 2 para pantallas pequeñas
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-            childAspectRatio: 1.2,
-          ),
-          itemBuilder: (context, index) {
-            final bay = bays[index];
-            return Card(
-              color: color(bay.estado),
-              child: InkWell(
-                onTap: () {
-                  // Navegar a la página de detalles de la bahía usando el ID de la bahía
-                  context.go('/bays/${bay.id}');
-                },
-                borderRadius: BorderRadius.circular(16),
-                child: Padding(
-                  padding: const EdgeInsets.all(16), // Ajuste en el padding para más espacio
-                  child: Stack(
-                    children: [
-                      // Colocamos el contenido de la bahía (texto y detalles)
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              CircleAvatar(
-                                backgroundColor: color(bay.estado).withOpacity(0.15),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            if (constraints.maxWidth < 600) {
+              // Si la pantalla es más pequeña, usamos un ListView
+              return ListView.builder(
+                itemCount: bays.length,
+                itemBuilder: (context, index) {
+                  final bay = bays[index];
+                  return Card(
+                    color: color(bay.estado),
+                    child: InkWell(
+                      onTap: () {
+                        // Navegar a la página de detalles de la bahía usando el ID de la bahía
+                        context.go('/bays/${bay.id}');
+                      },
+                      borderRadius: BorderRadius.circular(16),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16), // Ajuste en el padding para más espacio
+                        child: Stack(
+                          children: [
+                            // Colocamos el contenido de la bahía (texto y detalles)
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    CircleAvatar(
+                                      backgroundColor: color(bay.estado).withOpacity(0.15),
+                                      child: Icon(
+                                        Icons.directions_car,
+                                        color: Colors.white,
+                                        size: 28, // Aumento del tamaño del ícono
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        bay.nombre,
+                                        style: const TextStyle(
+                                          fontSize: 22, // Aumento del tamaño de la fuente
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white, // Asegura que el texto sea blanco
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                      decoration: BoxDecoration(
+                                        color: color(bay.estado).withOpacity(0.15),
+                                        borderRadius: BorderRadius.circular(999),
+                                        border: Border.all(color: color(bay.estado)),
+                                      ),
+                                      child: Text(
+                                        bay.estado.name,
+                                        style: const TextStyle(
+                                          fontSize: 16, // Aumento del tamaño de la fuente para el estado
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.white, // Asegura que el texto sea blanco
+                                        ),
+                                      ),
+                                    ),
+                                    const Spacer(),
+                                    Text(
+                                      'Puestos: ${bay.puestos}',
+                                      style: const TextStyle(
+                                        fontSize: 16, // Aumento del tamaño de la fuente para "Puestos"
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.white, // Asegura que el texto sea blanco
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                            // Colocamos el ícono en la parte superior derecha
+                            Positioned(
+                              top: 8, // Distancia desde la parte superior
+                              right: 8, // Distancia desde la parte derecha
+                              child: CircleAvatar(
+                                backgroundColor: color(bay.estado).withOpacity(0.7), // Fondo oscuro para el ícono
                                 child: Icon(
-                                  Icons.directions_car,
+                                  Icons.local_parking, // Cambié el ícono a uno de estacionamiento
                                   color: Colors.white,
-                                  size: 28, // Aumento del tamaño del ícono
+                                  size: 28, // Tamaño del ícono
                                 ),
                               ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  bay.nombre,
-                                  style: const TextStyle(
-                                    fontSize: 22, // Aumento del tamaño de la fuente
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white, // Asegura que el texto sea blanco
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                decoration: BoxDecoration(
-                                  color: color(bay.estado).withOpacity(0.15),
-                                  borderRadius: BorderRadius.circular(999),
-                                  border: Border.all(color: color(bay.estado)),
-                                ),
-                                child: Text(
-                                  bay.estado.name,
-                                  style: const TextStyle(
-                                    fontSize: 16, // Aumento del tamaño de la fuente para el estado
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.white, // Asegura que el texto sea blanco
-                                  ),
-                                ),
-                              ),
-                              const Spacer(),
-                              Text(
-                                'Puestos: ${bay.puestos}',
-                                style: const TextStyle(
-                                  fontSize: 16, // Aumento del tamaño de la fuente para "Puestos"
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.white, // Asegura que el texto sea blanco
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      // Colocamos el ícono en la parte superior derecha
-                      Positioned(
-                        top: 8, // Distancia desde la parte superior
-                        right: 8, // Distancia desde la parte derecha
-                        child: CircleAvatar(
-                          backgroundColor: color(bay.estado).withOpacity(0.7), // Fondo oscuro para el ícono
-                          child: Icon(
-                            Icons.local_parking, // Cambié el ícono a uno de estacionamiento
-                            color: Colors.white,
-                            size: 28, // Tamaño del ícono
-                          ),
+                            ),
+                          ],
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  );
+                },
+              );
+            } else {
+              // Si la pantalla es más grande, usamos un GridView
+              return GridView.builder(
+                itemCount: bays.length,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 4, // 4 columnas para pantallas grandes
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                  childAspectRatio: 1.2,
                 ),
-              ),
-            );
+                itemBuilder: (context, index) {
+                  final bay = bays[index];
+                  return Card(
+                    color: color(bay.estado),
+                    child: InkWell(
+                      onTap: () {
+                        // Navegar a la página de detalles de la bahía usando el ID de la bahía
+                        context.go('/bays/${bay.id}');
+                      },
+                      borderRadius: BorderRadius.circular(16),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Stack(
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    CircleAvatar(
+                                      backgroundColor: color(bay.estado).withOpacity(0.15),
+                                      child: Icon(
+                                        Icons.directions_car,
+                                        color: Colors.white,
+                                        size: 28,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        bay.nombre,
+                                        style: const TextStyle(
+                                          fontSize: 22,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                      decoration: BoxDecoration(
+                                        color: color(bay.estado).withOpacity(0.15),
+                                        borderRadius: BorderRadius.circular(999),
+                                        border: Border.all(color: color(bay.estado)),
+                                      ),
+                                      child: Text(
+                                        bay.estado.name,
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                    const Spacer(),
+                                    Text(
+                                      'Puestos: ${bay.puestos}',
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                            Positioned(
+                              top: 8,
+                              right: 8,
+                              child: CircleAvatar(
+                                backgroundColor: color(bay.estado).withOpacity(0.7),
+                                child: Icon(
+                                  Icons.local_parking,
+                                  color: Colors.white,
+                                  size: 28,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              );
+            }
           },
         ),
       ),
