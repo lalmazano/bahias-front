@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:bahias_app/presentation/state/theme_provider.dart';  // Asegúrate de que la ruta esté correcta
 import 'package:bahias_app/presentation/pages/widgets/app_drawer.dart'; // Asegúrate de que esta ruta sea la correcta
-
+import 'package:bahias_app/presentation/pages/parametros_page.dart'; // NUEVO
 
 class ConfiguracionPage extends ConsumerStatefulWidget {
   const ConfiguracionPage({super.key});
@@ -101,6 +101,18 @@ class _ConfiguracionPageState extends ConsumerState<ConfiguracionPage> {
               ),
             ),
             const Divider(),
+            ListTile(
+  leading: const Icon(Icons.tune),
+  title: const Text('Parámetros'),
+  subtitle: const Text('Configura valores como API, timeouts y más'),
+  trailing: const Icon(Icons.chevron_right),
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const ParametrosPage()),
+    );
+  },
+),
           ],
         ),
       ),
