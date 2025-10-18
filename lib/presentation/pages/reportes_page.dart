@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import '../pages/widgets/app_drawer.dart';
 import '../../data/models/bay.dart';
 import '../../data/models/reservation.dart';
+import '../../data/models/estado_bahia.dart';
+import '../../services/bahia_service.dart';
+import '../../services/reserva_service.dart';
+import '../../services/estado_bahia_service.dart';
 
 enum _Periodo { hoy, semana, mes }
 
@@ -13,42 +17,46 @@ class ReportesPage extends StatefulWidget {
 }
 
 class _ReportesPageState extends State<ReportesPage> {
-  // Mock: tus bahías (puedes inyectarlas desde donde las tengas)
-  final bays = <Bay>[
-    Bay(id: 'B1', nombre: 'Bahía 1', estado: BayStatus.libre, puestos: 3),
-    Bay(id: 'B2', nombre: 'Bahía 2', estado: BayStatus.ocupada, puestos: 2),
-    Bay(id: 'B3', nombre: 'Bahía 3', estado: BayStatus.mantenimiento, puestos: 4),
-    Bay(id: 'B4', nombre: 'Bahía 4', estado: BayStatus.libre, puestos: 1),
-  ];
+  final BahiaService _bService = BahiaService();
+  final ReservaService _rService = ReservaService();
+  final EstadoBahiaService _eService = EstadoBahiaService();
 
-  // Mock: reservas de ejemplo (cámbialas por las reales)
-  final reservas = <Reservation>[
-    Reservation(
-      bayId: 'B1',
-      start: DateTime.now().subtract(const Duration(hours: 2)),
-      duration: const Duration(hours: 2),
-    ),
-    Reservation(
-      bayId: 'B2',
-      start: DateTime.now().subtract(const Duration(days: 1, hours: 1)),
-      duration: const Duration(hours: 3),
-    ),
-    Reservation(
-      bayId: 'B3',
-      start: DateTime.now().subtract(const Duration(days: 3, hours: 2)),
-      duration: const Duration(hours: 1, minutes: 30)),
-    Reservation(
-      bayId: 'B1',
-      start: DateTime.now().subtract(const Duration(days: 5, hours: 4)),
-      duration: const Duration(hours: 4),
-    ),
-  ];
+  List<Bay> bays = [];
+  List<Reservation> reservas = [];
+  Map<int, EstadoBahia> estados = {};
 
   _Periodo periodo = _Periodo.hoy;
-
-  /// Configurable: ventana operativa por día (ej. 08:00–20:00)
   final int horaInicio = 8;
-  final int horaFin = 20; // exclusivo
+  final int horaFin = 20;
+
+  bool _isLoading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    try {
+      final fetchedBays = await _bService.getAll();
+      final fetchedReservas = await _rService.getAll();
+      final fetchedEstados = await _eService.getAll();
+
+      setState(() {
+        bays = fetchedBays;
+        reservas = fetchedReservas;
+        estados = {for (var e in fetchedEstados) e.idEstado: e};
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
 
   DateTimeRange _rangoSeleccionado(_Periodo p) {
     final now = DateTime.now();
@@ -58,7 +66,7 @@ class _ReportesPageState extends State<ReportesPage> {
         final fin = ini.add(const Duration(days: 1));
         return DateTimeRange(start: ini, end: fin);
       case _Periodo.semana:
-        final int weekday = now.weekday; // 1=lun ... 7=dom
+        final int weekday = now.weekday;
         final startOfWeek = DateTime(now.year, now.month, now.day)
             .subtract(Duration(days: weekday - 1));
         final endOfWeek = startOfWeek.add(const Duration(days: 7));
@@ -70,14 +78,12 @@ class _ReportesPageState extends State<ReportesPage> {
     }
   }
 
-  /// Horas operativas totales del rango (sumando cada día 08–20)
   Duration _horasOperativasEnRango(DateTimeRange rango) {
     Duration total = Duration.zero;
     DateTime d = DateTime(rango.start.year, rango.start.month, rango.start.day);
     while (d.isBefore(rango.end)) {
       final dayStart = DateTime(d.year, d.month, d.day, horaInicio);
       final dayEnd = DateTime(d.year, d.month, d.day, horaFin);
-      // Por si el rango inicia/termina a mitad de día:
       final inicio = dayStart.isBefore(rango.start) ? rango.start : dayStart;
       final fin = dayEnd.isAfter(rango.end) ? rango.end : dayEnd;
       if (fin.isAfter(inicio)) total += fin.difference(inicio);
@@ -86,11 +92,9 @@ class _ReportesPageState extends State<ReportesPage> {
     return total;
   }
 
-  /// Suma el tiempo reservado de una bahía dentro del rango, recortando intersecciones
-  Duration _usoDeBayEnRango(String bayId, DateTimeRange rango) {
+  Duration _usoDeBayEnRango(int bayId, DateTimeRange rango) {
     Duration total = Duration.zero;
 
-    // Ventanas diarias operativas para recortar las reservas a horario hábil
     DateTime d = DateTime(rango.start.year, rango.start.month, rango.start.day);
     while (d.isBefore(rango.end)) {
       final ventanaDia = DateTimeRange(
@@ -98,14 +102,25 @@ class _ReportesPageState extends State<ReportesPage> {
         end: DateTime(d.year, d.month, d.day, horaFin),
       );
 
-      for (final r in reservas.where((r) =>
-          r.bayId == bayId && r.estado != ReservaEstado.cancelada)) {
-        final rangoReserva = DateTimeRange(start: r.start, end: r.end);
-        final inter1 = _interseccion(rangoReserva, rango);
-        if (inter1 == null) continue;
-        final inter2 = _interseccion(inter1, ventanaDia);
-        if (inter2 == null) continue;
-        total += inter2.duration;
+      for (final r in reservas) {
+        if (r.bahia == null || r.bahia!.isEmpty) continue;
+
+        for (final b in r.bahia!) {
+          if (b.idBahia == bayId) {
+            final rangoReserva = DateTimeRange(
+              start: r.inicioTs,
+              end: r.finTs,
+            );
+
+            final inter1 = _interseccion(rangoReserva, rango);
+            if (inter1 == null) continue;
+
+            final inter2 = _interseccion(inter1, ventanaDia);
+            if (inter2 == null) continue;
+
+            total += inter2.duration;
+          }
+        }
       }
       d = d.add(const Duration(days: 1));
     }
@@ -119,19 +134,69 @@ class _ReportesPageState extends State<ReportesPage> {
     return e.isAfter(s) ? DateTimeRange(start: s, end: e) : null;
   }
 
+  Color colorPorEstado(int idEstado) {
+    switch (idEstado) {
+      case 1:
+        return Colors.green;
+      case 2:
+        return Colors.pink;
+      case 3:
+        return Colors.orange;
+      case 4:
+        return Colors.grey;
+      default:
+        return Colors.blueGrey;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_error != null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Reportes')),
+        body: Center(child: Text('Error: $_error')),
+      );
+    }
+
     final rango = _rangoSeleccionado(periodo);
     final horasOperativas = _horasOperativasEnRango(rango);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Reportes')),
+      appBar: AppBar(title: const Text('Reportes de Bahías')),
       drawer: const AppDrawer(),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // Filtro de período
+          // Leyenda de colores
+          Wrap(
+            spacing: 16,
+            runSpacing: 8,
+            children: estados.entries.map((e) {
+              return Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircleAvatar(
+                    radius: 6,
+                    backgroundColor: colorPorEstado(e.key),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(e.value.nombre,
+                      style: const TextStyle(fontSize: 14, color: Colors.black87)),
+                ],
+              );
+            }).toList(),
+          ),
+
+          const SizedBox(height: 20),
+
           Row(
             children: [
               const Icon(Icons.insights_outlined),
@@ -157,27 +222,27 @@ class _ReportesPageState extends State<ReportesPage> {
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: bays.map((b) {
-                  final uso = _usoDeBayEnRango(b.id, rango);
+                  final uso = _usoDeBayEnRango(b.idBahia, rango);
                   final pct = horasOperativas.inMinutes == 0
                       ? 0.0
                       : uso.inMinutes / horasOperativas.inMinutes;
+                  final estadoNombre =
+                      estados[b.idEstado]?.nombre ?? 'Sin estado';
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 10),
                     child: _UsoRow(
-                      nombre: b.nombre,
+                      nombre: 'Bahía ${b.idBahia} ($estadoNombre)',
                       minutosUsados: uso.inMinutes,
                       minutosDisponibles: horasOperativas.inMinutes,
                       porcentaje: pct.clamp(0, 1),
+                      color: colorPorEstado(b.idEstado),
                     ),
                   );
                 }).toList(),
               ),
             ),
           ),
-
           const SizedBox(height: 16),
-
-          // Resumen rápido: top y promedio
           _ResumenCard(
             title: 'Resumen',
             contenido: _buildResumen(rango, horasOperativas),
@@ -189,9 +254,10 @@ class _ReportesPageState extends State<ReportesPage> {
 
   Widget _buildResumen(DateTimeRange rango, Duration horasOperativas) {
     if (bays.isEmpty) {
-      return const Text('Sin bahías configuradas.');
+      return const Text('Sin bahías registradas.');
     }
-    final usos = bays.map((b) => _usoDeBayEnRango(b.id, rango)).toList();
+
+    final usos = bays.map((b) => _usoDeBayEnRango(b.idBahia, rango)).toList();
     final proms = usos.isEmpty
         ? 0.0
         : usos.map((d) => d.inMinutes).reduce((a, b) => a + b) /
@@ -201,7 +267,7 @@ class _ReportesPageState extends State<ReportesPage> {
     for (int i = 1; i < usos.length; i++) {
       if (usos[i] > usos[iTop]) iTop = i;
     }
-    final topBay = bays[iTop].nombre;
+    final topBay = 'Bahía ${bays[iTop].idBahia}';
     final topPct = horasOperativas.inMinutes == 0
         ? 0.0
         : usos[iTop].inMinutes / horasOperativas.inMinutes;
@@ -213,8 +279,8 @@ class _ReportesPageState extends State<ReportesPage> {
         const SizedBox(height: 6),
         Text('Más usada: $topBay (${(topPct * 100).toStringAsFixed(1)}%)'),
         const SizedBox(height: 6),
-        Text('Ventana analizada: '
-            '${rango.start.day}/${rango.start.month} – ${rango.end.subtract(const Duration(seconds: 1)).day}/${rango.end.month}'),
+        Text(
+            'Ventana: ${rango.start.day}/${rango.start.month} – ${rango.end.subtract(const Duration(seconds: 1)).day}/${rango.end.month}'),
         const SizedBox(height: 6),
         Text('Horario operativo: $horaInicio:00–$horaFin:00'),
       ],
@@ -227,12 +293,14 @@ class _UsoRow extends StatelessWidget {
   final int minutosUsados;
   final int minutosDisponibles;
   final double porcentaje;
+  final Color color;
 
   const _UsoRow({
     required this.nombre,
     required this.minutosUsados,
     required this.minutosDisponibles,
     required this.porcentaje,
+    required this.color,
   });
 
   @override
@@ -262,6 +330,8 @@ class _UsoRow extends StatelessWidget {
           child: LinearProgressIndicator(
             value: porcentaje,
             minHeight: 10,
+            color: color,
+            backgroundColor: color.withOpacity(0.2),
           ),
         ),
         const SizedBox(height: 6),

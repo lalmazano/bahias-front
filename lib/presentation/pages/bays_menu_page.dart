@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../data/models/bay.dart';
+import '../../data/models/estado_bahia.dart';
+import '../../data/models/ubicacion.dart';
+import '../../services/bahia_service.dart';
+import '../../services/estado_bahia_service.dart';
+import '../../services/ubicacion_service.dart';
 import './widgets/app_drawer.dart';
 import 'package:flutter/services.dart';
 
@@ -12,97 +17,135 @@ class BaysMenuPage extends StatefulWidget {
 }
 
 class _BaysMenuPageState extends State<BaysMenuPage> {
-  final List<Bay> bays = [
-    Bay(id: 'B1', nombre: 'Bahía 1', estado: BayStatus.libre, puestos: 3),
-    Bay(id: 'B2', nombre: 'Bahía 2', estado: BayStatus.ocupada, puestos: 2),
-    Bay(id: 'B3', nombre: 'Bahía 3', estado: BayStatus.mantenimiento, puestos: 4),
-    Bay(id: 'B4', nombre: 'Bahía 4', estado: BayStatus.libre, puestos: 1),
-  ];
+  final BahiaService _bahiaService = BahiaService();
+  final EstadoBahiaService _estadoService = EstadoBahiaService();
+  final UbicacionService _ubicacionService = UbicacionService();
 
-  Color color(BayStatus s) {
-    switch (s) {
-      case BayStatus.libre:
-        return Colors.green;
-      case BayStatus.ocupada:
-        return Colors.pink;
-      case BayStatus.mantenimiento:
-        return Colors.orange;
-      default:
-        return Colors.grey;
+  List<Bay> bays = [];
+  Map<int, EstadoBahia> estados = {};
+  Map<int, Ubicacion> ubicaciones = {};
+  bool _isLoading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    try {
+      final fetchedBays = await _bahiaService.getAll();
+      final fetchedEstados = await _estadoService.getAll();
+      final fetchedUbicaciones = await _ubicacionService.getAll();
+
+      setState(() {
+        bays = fetchedBays;
+        estados = {for (var e in fetchedEstados) e.idEstado: e};
+        ubicaciones = {for (var u in fetchedUbicaciones) u.idUbicacion: u};
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
     }
   }
 
-  // Mostrar el diálogo para agregar una nueva bahía
+  Color colorPorEstado(int idEstado) {
+    switch (idEstado) {
+      case 1:
+        return Colors.green; // Disponible
+      case 2:
+        return Colors.pink; // Ocupada
+      case 3:
+        return Colors.orange; // Mantenimiento
+      case 4:
+        return Colors.grey; // Inactiva
+      default:
+        return Colors.blueGrey;
+    }
+  }
+
+  // Mostrar diálogo para agregar nueva bahía
   void _showAddBayDialog() {
-    final TextEditingController puestosController = TextEditingController();
-    BayStatus selectedStatus = BayStatus.libre; // Valor inicial del estado
+    final TextEditingController ubicacionController = TextEditingController();
+    int selectedEstado = estados.keys.isNotEmpty ? estados.keys.first : 1;
+    int selectedUbicacion = ubicaciones.keys.isNotEmpty ? ubicaciones.keys.first : 1;
 
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Agregar nueva bahía'),
+          title: const Text('Agregar nueva Bahía'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // El nombre se autogenerará, no necesitamos un campo de texto para el nombre
-              Text('Nombre de la bahía: Bahía ${bays.length + 1}'), // Asigna el nombre dinámico
-              TextField(
-                controller: puestosController,
+              DropdownButtonFormField<int>(
+                value: selectedUbicacion,
                 decoration: const InputDecoration(
-                  labelText: 'Número de puestos',
+                  labelText: 'Ubicación',
                 ),
-                keyboardType: TextInputType.number, // Solo aceptar números
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly, // Solo permite dígitos
-                ],
-              ),
-              // Aquí actualizamos el estado
-              DropdownButton<BayStatus>(
-                value: selectedStatus,
-                onChanged: (BayStatus? newValue) {
+                onChanged: (int? value) {
                   setState(() {
-                    selectedStatus = newValue!; // Actualizar el estado de la bahía
+                    selectedUbicacion = value!;
                   });
                 },
-                items: BayStatus.values.map((status) {
-                  return DropdownMenuItem(
-                    value: status,
-                    child: Text(status.name),
-                  );
-                }).toList(),
+                items: ubicaciones.entries
+                    .map((e) => DropdownMenuItem<int>(
+                          value: e.key,
+                          child: Text(e.value.nombre),
+                        ))
+                    .toList(),
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<int>(
+                value: selectedEstado,
+                decoration: const InputDecoration(
+                  labelText: 'Estado de Bahía',
+                ),
+                onChanged: (int? value) {
+                  setState(() {
+                    selectedEstado = value!;
+                  });
+                },
+                items: estados.entries
+                    .map((e) => DropdownMenuItem<int>(
+                          value: e.key,
+                          child: Text(e.value.nombre),
+                        ))
+                    .toList(),
               ),
             ],
           ),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Cerrar el diálogo
-              },
+              onPressed: () => Navigator.pop(context),
               child: const Text('Cancelar'),
             ),
             ElevatedButton(
-              onPressed: () {
-                // Validar que el campo de puestos no esté vacío
-                if (puestosController.text.isNotEmpty) {
-                  // Generar el ID de la nueva bahía basado en el número de bahías existentes
-                  String newBayId = 'B${bays.length + 1}'; // Esto generará 'B5' si hay 4 bahías
+              onPressed: () async {
+                try {
+                  final nuevaBahia = Bay(
+                    idBahia: 0,
+                    idUbicacion: selectedUbicacion,
+                    idEstado: selectedEstado,
+                    idReserva: null,
+                    fechaCreacion: DateTime.now().toIso8601String(),
+                  );
 
-                  // Crear nueva bahía
-                  setState(() {
-                    bays.add(
-                      Bay(
-                        id: newBayId, // Asignamos el ID generado
-                        nombre: 'Bahía ${bays.length + 1}', // Nombre dinámico
-                        estado: selectedStatus,
-                        puestos: int.parse(puestosController.text),
-                      ),
-                    );
-                  });
+                  await _bahiaService.addBay(nuevaBahia);
+                  Navigator.pop(context);
+                  _loadData(); // refresca lista
+                } catch (e) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error al agregar bahía: $e')),
+                  );
                 }
-                Navigator.of(context).pop(); // Cerrar el diálogo después de agregar
               },
-              child: const Text('Agregar bahía'),
+              child: const Text('Guardar'),
             ),
           ],
         );
@@ -112,6 +155,19 @@ class _BaysMenuPageState extends State<BaysMenuPage> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_error != null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Bahías')),
+        body: Center(child: Text('Error: $_error')),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(title: const Text('Bahías')),
       drawer: const AppDrawer(),
@@ -119,212 +175,129 @@ class _BaysMenuPageState extends State<BaysMenuPage> {
         padding: const EdgeInsets.all(16),
         child: LayoutBuilder(
           builder: (context, constraints) {
-            if (constraints.maxWidth < 600) {
-              // Si la pantalla es más pequeña, usamos un ListView
-              return ListView.builder(
-                itemCount: bays.length,
-                itemBuilder: (context, index) {
-                  final bay = bays[index];
-                  return Card(
-                    color: color(bay.estado),
-                    child: InkWell(
-                      onTap: () {
-                        // Navegar a la página de detalles de la bahía usando el ID de la bahía
-                        context.go('/bays/${bay.id}');
-                      },
-                      borderRadius: BorderRadius.circular(16),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16), // Ajuste en el padding para más espacio
-                        child: Stack(
-                          children: [
-                            // Colocamos el contenido de la bahía (texto y detalles)
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    CircleAvatar(
-                                      backgroundColor: color(bay.estado).withOpacity(0.15),
-                                      child: Icon(
-                                        Icons.directions_car,
-                                        color: Colors.white,
-                                        size: 28, // Aumento del tamaño del ícono
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: Text(
-                                        bay.nombre,
-                                        style: const TextStyle(
-                                          fontSize: 22, // Aumento del tamaño de la fuente
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.white, // Asegura que el texto sea blanco
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 12),
-                                Row(
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                      decoration: BoxDecoration(
-                                        color: color(bay.estado).withOpacity(0.15),
-                                        borderRadius: BorderRadius.circular(999),
-                                        border: Border.all(color: color(bay.estado)),
-                                      ),
-                                      child: Text(
-                                        bay.estado.name,
-                                        style: const TextStyle(
-                                          fontSize: 16, // Aumento del tamaño de la fuente para el estado
-                                          fontWeight: FontWeight.w600,
-                                          color: Colors.white, // Asegura que el texto sea blanco
-                                        ),
-                                      ),
-                                    ),
-                                    const Spacer(),
-                                    Text(
-                                      'Puestos: ${bay.puestos}',
-                                      style: const TextStyle(
-                                        fontSize: 16, // Aumento del tamaño de la fuente para "Puestos"
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.white, // Asegura que el texto sea blanco
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                            // Colocamos el ícono en la parte superior derecha
-                            Positioned(
-                              top: 8, // Distancia desde la parte superior
-                              right: 8, // Distancia desde la parte derecha
-                              child: CircleAvatar(
-                                backgroundColor: color(bay.estado).withOpacity(0.7), // Fondo oscuro para el ícono
-                                child: Icon(
-                                  Icons.local_parking, // Cambié el ícono a uno de estacionamiento
-                                  color: Colors.white,
-                                  size: 28, // Tamaño del ícono
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              );
-            } else {
-              // Si la pantalla es más grande, usamos un GridView
-              return GridView.builder(
-                itemCount: bays.length,
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 4, // 4 columnas para pantallas grandes
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                  childAspectRatio: 1.2,
-                ),
-                itemBuilder: (context, index) {
-                  final bay = bays[index];
-                  return Card(
-                    color: color(bay.estado),
-                    child: InkWell(
-                      onTap: () {
-                        // Navegar a la página de detalles de la bahía usando el ID de la bahía
-                        context.go('/bays/${bay.id}');
-                      },
-                      borderRadius: BorderRadius.circular(16),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Stack(
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    CircleAvatar(
-                                      backgroundColor: color(bay.estado).withOpacity(0.15),
-                                      child: Icon(
-                                        Icons.directions_car,
-                                        color: Colors.white,
-                                        size: 28,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: Text(
-                                        bay.nombre,
-                                        style: const TextStyle(
-                                          fontSize: 22,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 12),
-                                Row(
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                      decoration: BoxDecoration(
-                                        color: color(bay.estado).withOpacity(0.15),
-                                        borderRadius: BorderRadius.circular(999),
-                                        border: Border.all(color: color(bay.estado)),
-                                      ),
-                                      child: Text(
-                                        bay.estado.name,
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w600,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                    ),
-                                    const Spacer(),
-                                    Text(
-                                      'Puestos: ${bay.puestos}',
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                            Positioned(
-                              top: 8,
-                              right: 8,
-                              child: CircleAvatar(
-                                backgroundColor: color(bay.estado).withOpacity(0.7),
-                                child: Icon(
-                                  Icons.local_parking,
-                                  color: Colors.white,
-                                  size: 28,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              );
+            if (bays.isEmpty) {
+              return const Center(child: Text('No hay bahías registradas.'));
             }
+
+            final isSmallScreen = constraints.maxWidth < 600;
+
+            return isSmallScreen
+                ? ListView.builder(
+                    itemCount: bays.length,
+                    itemBuilder: (context, index) =>
+                        _buildBayCard(context, bays[index]),
+                  )
+                : GridView.builder(
+                    itemCount: bays.length,
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 4,
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
+                      childAspectRatio: 1.2,
+                    ),
+                    itemBuilder: (context, index) =>
+                        _buildBayCard(context, bays[index]),
+                  );
           },
         ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddBayDialog,
+        tooltip: 'Agregar Bahía',
         child: const Icon(Icons.add),
-        tooltip: 'Agregar nueva bahía',
+      ),
+    );
+  }
+
+  Widget _buildBayCard(BuildContext context, Bay bay) {
+    final estado = estados[bay.idEstado]?.nombre ?? 'Sin estado';
+    final descripcion = estados[bay.idEstado]?.descripcion ?? '';
+    final ubicacion = ubicaciones[bay.idUbicacion]?.nombre ?? 'Sin ubicación';
+    final detalleUbicacion = ubicaciones[bay.idUbicacion]?.detalle ?? '';
+    final color = colorPorEstado(bay.idEstado);
+
+    return Card(
+      color: color,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: 4,
+      child: InkWell(
+        onTap: () {
+          context.go('/bays/${bay.idBahia}');
+        },
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Stack(
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      CircleAvatar(
+                        backgroundColor: color.withOpacity(0.2),
+                        child: const Icon(Icons.directions_car,
+                            color: Colors.white, size: 28),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Bahía ${bay.idBahia}',
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    estado,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                  Text(
+                    descripcion,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Colors.white70,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Ubicación: $ubicacion',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Colors.white70,
+                    ),
+                  ),
+                  Text(
+                    detalleUbicacion,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Colors.white60,
+                    ),
+                  ),
+                ],
+              ),
+              Positioned(
+                top: 8,
+                right: 8,
+                child: CircleAvatar(
+                  backgroundColor: color.withOpacity(0.6),
+                  child: const Icon(Icons.local_parking,
+                      color: Colors.white, size: 26),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
