@@ -1,26 +1,31 @@
+import '../core/network/api_client.dart';
 import 'secure_storage_service.dart';
 
 class AuthRepository {
   final SecureStorageService _storage;
-  AuthRepository(this._storage);
+  final ApiClient _api;
 
-  // 🔒 Credenciales fijas de demo
-  static const _demoUser = 'demo';
-  static const _demoPass = 'Demo123*';
+  AuthRepository(this._storage, this._api);
 
   Future<bool> hasValidSession() async {
-    final t = await _storage.getToken();
+    final t = await _storage.readToken();
     return t != null && t.isNotEmpty;
   }
 
+  /// Llama a POST /api/Login con { username, password }
+  /// Espera un JSON que contenga el token (token|jwt|accessToken).
   Future<void> login(String user, String pass) async {
-    // ✅ Modo demo: valida contra usuario/contra fijos
-    if (user == _demoUser && pass == _demoPass) {
-      await _storage.saveToken('jwt_mock_${DateTime.now().millisecondsSinceEpoch}');
-      return;
+    final data = await _api.post('/api/Login', {
+      'username': user,
+      'password': pass,
+    });
+
+    // Ajusta si tu backend devuelve otra propiedad
+    final token = (data['token'] ?? data['jwt'] ?? data['accessToken']) as String?;
+    if (token == null || token.isEmpty) {
+      throw Exception('No se recibió token del servidor.');
     }
-    // ❌ Falla si no coincide
-    throw Exception('Credenciales inválidas (usa: demo / Demo123*)');
+    await _storage.saveToken(token);
   }
 
   Future<void> logout() => _storage.deleteToken();

@@ -35,5 +35,6 @@ class UsuariosRepositoryImpl implements UsuariosRepository {
     apellido: u.apellido,
     estado: u.estado,
     roles: u.roles,
+    password: u.password,
   );
 }

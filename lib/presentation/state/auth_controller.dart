@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'providers.dart';
 import '../../services/auth_repository.dart';
-import '../../services/secure_storage_service.dart';
 
 /// Estado simple de auth
 class AuthState {
@@ -8,7 +8,11 @@ class AuthState {
   final bool isLoading;
   final String? error;
 
-  const AuthState({required this.isAuthenticated, this.isLoading = false, this.error});
+  const AuthState({
+    required this.isAuthenticated,
+    this.isLoading = false,
+    this.error,
+  });
 
   AuthState copyWith({bool? isAuthenticated, bool? isLoading, String? error}) {
     return AuthState(
@@ -19,19 +23,17 @@ class AuthState {
   }
 }
 
-/// Proveedores base
-final secureStorageProvider = Provider((ref) => SecureStorageService());
-final authRepositoryProvider = Provider((ref) => AuthRepository(ref.read(secureStorageProvider)));
-
 /// Controlador de auth (reactivo)
-final authControllerProvider = StateNotifierProvider<AuthController, AuthState>((ref) {
+final authControllerProvider =
+    StateNotifierProvider<AuthController, AuthState>((ref) {
   final repo = ref.read(authRepositoryProvider);
   return AuthController(repo)..checkSession();
 });
 
 class AuthController extends StateNotifier<AuthState> {
   final AuthRepository _repo;
-  AuthController(this._repo) : super(const AuthState(isAuthenticated: false, isLoading: true));
+  AuthController(this._repo)
+      : super(const AuthState(isAuthenticated: false, isLoading: true));
 
   Future<void> checkSession() async {
     state = state.copyWith(isLoading: true, error: null);

@@ -10,6 +10,7 @@ class UsuarioModel extends Usuario {
     required super.apellido,
     required super.estado,
     required super.roles,
+    super.password
   });
 
   factory UsuarioModel.fromJson(Map<String, dynamic> j) => UsuarioModel(
@@ -20,6 +21,7 @@ class UsuarioModel extends Usuario {
     apellido: j['apellido'] ?? '',
     estado: j['estado'] ?? '',
     roles: (j['roles'] as List?)?.map((e) => e.toString()).toList() ?? const [],
+    password: j['password'] ?? '',
   );
 
   Map<String, dynamic> toJson() => {
@@ -30,5 +32,6 @@ class UsuarioModel extends Usuario {
     'apellido': apellido,
     'estado': estado,
     'roles': roles,
+    'password': password
   };
 }
