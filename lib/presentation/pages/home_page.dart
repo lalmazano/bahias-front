@@ -196,15 +196,18 @@ class _QuickCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
     return Card(
       elevation: 2,
       clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-        child: Column(
-          children: [
-            Row(
+        child: LayoutBuilder(
+          builder: (context, c) {
+            final isNarrow = c.maxWidth < 480; // móvil angosto
+
+            final header = Row(
               children: [
                 Icon(Icons.insights_outlined, color: theme.colorScheme.primary),
                 const SizedBox(width: 8),
@@ -215,26 +218,52 @@ class _QuickCard extends StatelessWidget {
                   ),
                 ),
               ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: items
-                  .map((e) => Expanded(
-                        child: _QuickStat(
-                          icon: e.icon,
-                          label: e.label,
-                          value: e.value,
-                        ),
-                      ))
-                  .toList(),
-            ),
-          ],
+            );
+
+            // Misma tarjeta de stat para todos los tamaños
+            final stats = items
+                .map((e) => _QuickStat(icon: e.icon, label: e.label, value: e.value))
+                .toList();
+
+            if (isNarrow) {
+              // En móviles: 2 x fila (Wrap)
+              final spacing = 12.0;
+              final itemWidth = (c.maxWidth - spacing) / 2; // 2 columnas
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  header,
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: spacing,
+                    runSpacing: spacing,
+                    children: stats
+                        .map((w) => SizedBox(width: itemWidth, child: w))
+                        .toList(),
+                  ),
+                ],
+              );
+            } else {
+              // En pantallas anchas: una sola fila
+              return Column(
+                children: [
+                  header,
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: stats.map((w) => Expanded(child: w)).toList(),
+                  ),
+                ],
+              );
+            }
+          },
         ),
       ),
     );
   }
 }
+
 
 class _QuickItem {
   final IconData icon;
@@ -251,37 +280,38 @@ class _QuickStat extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
-  const _QuickStat({
-    required this.icon,
-    required this.label,
-    required this.value,
-  });
+  const _QuickStat({required this.icon, required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final labelStyle = theme.textTheme.bodySmall?.copyWith(
       color: theme.colorScheme.onSurface.withOpacity(0.65),
+      overflow: TextOverflow.ellipsis,
     );
-    final valueStyle =
-        theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700);
+    final valueStyle = theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700);
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: 22, color: theme.colorScheme.primary),
-          const SizedBox(width: 8),
-          Column(
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(icon, size: 20, color: theme.colorScheme.primary),
+        const SizedBox(width: 8),
+        // Flexible evita overflow; FittedBox encoge si es necesario
+        Flexible(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(value, style: valueStyle),
-              Text(label, style: labelStyle),
+              FittedBox(
+                alignment: Alignment.centerLeft,
+                fit: BoxFit.scaleDown,
+                child: Text(value, style: valueStyle),
+              ),
+              Text(label, style: labelStyle, maxLines: 1, softWrap: false),
             ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
+
