@@ -28,7 +28,7 @@ class MyApp extends StatelessWidget {
         stream: _authService.userChanges,
         builder: (context, snapshot) {
           if (snapshot.hasData) {
-            return DashboardScreen();
+            return DashboardBahias();
           } else {
             return LoginScreen();
           }
