@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "286265416101",
+    "project_id": "bahias-2ea5b",
+    "storage_bucket": "bahias-2ea5b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:286265416101:android:86acdbced3bada09df304c",
+        "android_client_info": {
+          "package_name": "com.example.bahias_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "286265416101-l9ufepdosekt2pk59po6ftli29695782.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyABaoBNqsmW6wV5HZpP0gNKodBwfmKtz1A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "286265416101-l9ufepdosekt2pk59po6ftli29695782.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
