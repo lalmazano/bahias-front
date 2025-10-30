@@ -24,28 +24,63 @@ class _BahiasPageState extends State<BahiasPage> {
     _ensureDefaultBahias();
   }
 
-  /// 🔧 Crear las primeras 35 bahías si no existen
+  /// 🔧 Crear las primeras 35 bahías si no existen o faltan campos
   Future<void> _ensureDefaultBahias() async {
-    final bahias = await _firestore.collection('Bahias').get();
-    if (bahias.size < 35) {
-      final tipoRef = _firestore.collection('Tipo_Bahia').doc('General');
-      final estadoRef = _firestore.collection('Tipo_Estado').doc('Libre');
-      for (int i = 1; i <= 35; i++) {
-        final docId = i.toString().padLeft(2, '0');
-        final exists = await _firestore
-            .collection('Bahias')
-            .where('No_Bahia', isEqualTo: i)
-            .limit(1)
-            .get();
-        if (exists.docs.isEmpty) {
-          await _firestore.collection('Bahias').doc(docId).set({
-            'No_Bahia': i,
-            'Nombre': 'Bahía $i',
-            'TipoRef': tipoRef,
-            'EstadoRef': estadoRef,
-          });
-        }
+    final coll = _firestore.collection('Bahias');
+    final tipoRefDefault = _firestore.collection('Tipo_Bahia').doc('General');
+    final estadoRefDefault = _firestore.collection('Tipo_Estado').doc('Libre');
+
+    final bahias = await coll.get();
+
+    for (int i = 1; i <= 35; i++) {
+      final docId = i.toString().padLeft(2, '0');
+      final docRef = coll.doc(docId);
+      final snap = await docRef.get();
+
+      if (!snap.exists) {
+        // Crear bahía nueva si no existe
+        await docRef.set({
+          'No_Bahia': i,
+          'Nombre': 'Bahía $i',
+          'TipoRef': tipoRefDefault,
+          'EstadoRef': estadoRefDefault,
+        });
+      } else {
+        // Verificar y corregir campos faltantes
+        await _ensureCamposBahia(docRef, snap);
       }
+    }
+  }
+
+  /// 🔍 Verifica y crea campos si faltan en una bahía
+  Future<void> _ensureCamposBahia(
+      DocumentReference<Map<String, dynamic>> docRef,
+      DocumentSnapshot<Map<String, dynamic>> snap) async {
+    final data = snap.data() ?? {};
+    final updates = <String, dynamic>{};
+
+    final tipoRefDefault = _firestore.collection('Tipo_Bahia').doc('General');
+    final estadoRefDefault = _firestore.collection('Tipo_Estado').doc('Libre');
+
+    if (!data.containsKey('No_Bahia')) {
+      final idNum = int.tryParse(docRef.id) ?? 0;
+      updates['No_Bahia'] = idNum;
+    }
+
+    if (!data.containsKey('Nombre')) {
+      updates['Nombre'] = 'Bahía ${data['No_Bahia'] ?? docRef.id}';
+    }
+
+    if (!data.containsKey('TipoRef') || data['TipoRef'] == null) {
+      updates['TipoRef'] = tipoRefDefault;
+    }
+
+    if (!data.containsKey('EstadoRef') || data['EstadoRef'] == null) {
+      updates['EstadoRef'] = estadoRefDefault;
+    }
+
+    if (updates.isNotEmpty) {
+      await docRef.update(updates);
     }
   }
 
@@ -107,7 +142,7 @@ class _BahiasPageState extends State<BahiasPage> {
           if (_selected.isNotEmpty && _allInMaintenance)
             SpeedDialChild(
               child: const Icon(Icons.refresh),
-              label: "Liberar",
+              label: "Liberar Bahías",
               backgroundColor: Colors.lightGreenAccent,
               onTap: _setToFree,
             ),
@@ -194,6 +229,7 @@ class _BahiasPageState extends State<BahiasPage> {
                       setState(() {
                         selected ? _selected.remove(docId) : _selected.add(docId);
                       });
+                      _updateSelectionState(docs);
                     },
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 300),
@@ -266,7 +302,67 @@ class _BahiasPageState extends State<BahiasPage> {
     );
   }
 
-  /// 🔍 Filtros
+  /// 🧠 Actualizar estado de selección
+  void _updateSelectionState(List<QueryDocumentSnapshot> docs) {
+    bool hasProtected = false;
+    bool allMaintenance = true;
+
+    for (final id in _selected) {
+      final doc = docs.firstWhere((d) => d.id == id);
+      final no = doc['No_Bahia'] ?? 0;
+      final estadoRef = doc['EstadoRef'] as DocumentReference?;
+      if (no <= 35) hasProtected = true;
+      if (estadoRef?.id != 'Mantenimiento') allMaintenance = false;
+    }
+
+    setState(() {
+      _hasProtectedSelected = hasProtected;
+      _allInMaintenance = allMaintenance && _selected.isNotEmpty;
+    });
+  }
+
+  /// 🧰 Cambiar estado
+  Future<void> _setToMaintenance() async {
+    final estado = _firestore.collection('Tipo_Estado').doc('Mantenimiento');
+    for (final id in _selected) {
+      await _firestore.collection('Bahias').doc(id).update({'EstadoRef': estado});
+    }
+    setState(() {
+      _selected.clear();
+      _allInMaintenance = false;
+    });
+  }
+
+  Future<void> _setToFree() async {
+    final estado = _firestore.collection('Tipo_Estado').doc('Libre');
+    for (final id in _selected) {
+      await _firestore.collection('Bahias').doc(id).update({'EstadoRef': estado});
+    }
+    setState(() {
+      _selected.clear();
+      _allInMaintenance = false;
+    });
+  }
+
+  /// 🗑️ Eliminar
+  Future<void> _confirmDeleteSelected() async {
+    for (final id in _selected) {
+      final doc = await _firestore.collection('Bahias').doc(id).get();
+      final no = doc.data()?['No_Bahia'] ?? 0;
+      if (no > 35) await doc.reference.delete();
+    }
+    setState(() => _selected.clear());
+  }
+
+  /// 🔍 Crear referencias por defecto
+  Future<List<DocumentSnapshot?>> _ensureReferences(
+      DocumentReference? tipoRef, DocumentReference? estadoRef) async {
+    tipoRef ??= _firestore.collection('Tipo_Bahia').doc('General');
+    estadoRef ??= _firestore.collection('Tipo_Estado').doc('Libre');
+    return [await tipoRef.get(), await estadoRef.get()];
+  }
+
+  /// 🔍 Modal filtros
   Future<void> _mostrarModalFiltros() async {
     String estadoTemp = _filtroEstado;
     String tipoTemp = _filtroTipo;
@@ -378,7 +474,7 @@ class _BahiasPageState extends State<BahiasPage> {
     );
   }
 
-  /// ✅ Cambiar tipo (ahora funcional)
+  /// 🧩 Cambiar tipo
   Future<void> _mostrarSelectorTipo() async {
     final tiposSnap = await _firestore.collection('Tipo_Bahia').get();
     final tipos = tiposSnap.docs.map((e) => e.id).toList();
@@ -462,39 +558,5 @@ class _BahiasPageState extends State<BahiasPage> {
       'TipoRef': tipoRef,
       'EstadoRef': estadoRef,
     });
-  }
-
-  /// 🧰 Cambiar estado
-  Future<void> _setToMaintenance() async {
-    final estado = _firestore.collection('Tipo_Estado').doc('Mantenimiento');
-    for (final id in _selected) {
-      await _firestore.collection('Bahias').doc(id).update({'EstadoRef': estado});
-    }
-    setState(() => _selected.clear());
-  }
-
-  Future<void> _setToFree() async {
-    final estado = _firestore.collection('Tipo_Estado').doc('Libre');
-    for (final id in _selected) {
-      await _firestore.collection('Bahias').doc(id).update({'EstadoRef': estado});
-    }
-    setState(() => _selected.clear());
-  }
-
-  /// 🗑️ Eliminar
-  Future<void> _confirmDeleteSelected() async {
-    for (final id in _selected) {
-      final doc = await _firestore.collection('Bahias').doc(id).get();
-      final no = doc.data()?['No_Bahia'] ?? 0;
-      if (no > 35) await doc.reference.delete();
-    }
-    setState(() => _selected.clear());
-  }
-
-  Future<List<DocumentSnapshot?>> _ensureReferences(
-      DocumentReference? tipoRef, DocumentReference? estadoRef) async {
-    tipoRef ??= _firestore.collection('Tipo_Bahia').doc('General');
-    estadoRef ??= _firestore.collection('Tipo_Estado').doc('Libre');
-    return [await tipoRef.get(), await estadoRef.get()];
   }
 }
