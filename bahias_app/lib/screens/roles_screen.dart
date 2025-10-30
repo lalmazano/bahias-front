@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class RolesScreen extends StatefulWidget {
+  const RolesScreen({super.key}); // 👈 agrega este constructor
   @override
   _RolesScreenState createState() => _RolesScreenState();
 }
+
 
 class _RolesScreenState extends State<RolesScreen> {
   final _db = FirebaseFirestore.instance;

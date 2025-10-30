@@ -8,6 +8,9 @@ import '../pages/bahias_page.dart';
 import '../pages/reservas_page.dart';
 import '../pages/reportes_page.dart';
 import '../screens/roles_screen.dart';
+import '../screens/configuraciones_screen.dart';
+import '../screens/agregar_solicitud_page.dart';
+
 
 // Servicio Firestore
 import '../services/firestore_service.dart';
@@ -29,12 +32,14 @@ class _AppShellState extends State<AppShell> {
   final _firestore = FirestoreService();
 
   final List<_NavItem> _allItems = const [
-    _NavItem('Home', Icons.dashboard_outlined, permiso: 'ver'),
-    _NavItem('Bahías', Icons.directions_boat_outlined, permiso: 'ver'),
-    _NavItem('Reservas', Icons.event_available_outlined, permiso: 'crear'),
-    _NavItem('Reportes', Icons.bar_chart_rounded, permiso: 'generar_reportes'),
-    _NavItem('Configuraciones', Icons.settings_outlined, permiso: 'editar'),
-  ];
+  _NavItem('Home', Icons.dashboard_outlined, permiso: 'ver'),
+  _NavItem('Bahías', Icons.directions_boat_outlined, permiso: 'ver'),
+  _NavItem('Reservas', Icons.event_available_outlined, permiso: 'crear'),
+  _NavItem('Reportes', Icons.bar_chart_rounded, permiso: 'generar_reportes'),
+  _NavItem('Agregar Solicitudes', Icons.add_circle_outline, permiso: 'crear_solicitud'),
+  _NavItem('Configuraciones', Icons.settings_outlined, permiso: 'editar'),
+];
+
 
   List<_NavItem> _filteredItems = [];
 
@@ -72,21 +77,24 @@ class _AppShellState extends State<AppShell> {
   }
 
   Widget _pageFor(int i) {
-    switch (_filteredItems[i].label) {
-      case 'Home':
-        return const HomeSummaryPage();
-      case 'Bahías':
-        return const BahiasPage();
-      case 'Reservas':
-        return const ReservasPage();
-      case 'Reportes':
-        return const ReportesPage();
-      case 'Configuraciones':
-        return RolesScreen();
-      default:
-        return const HomeSummaryPage();
-    }
+  switch (_filteredItems[i].label) {
+    case 'Home':
+      return const HomeSummaryPage();
+    case 'Bahías':
+      return const BahiasPage();
+    case 'Reservas':
+      return const ReservasPage();
+    case 'Reportes':
+      return const ReportesPage();
+    case 'Agregar Solicitudes':
+      return const AgregarSolicitudPage(); // ✅ nuevo
+    case 'Configuraciones':
+      return const ConfiguracionesScreen(); // ✅ ahora usa la nueva vista con Roles, Asignaciones, Temas
+    default:
+      return const HomeSummaryPage();
   }
+}
+
 
   @override
   Widget build(BuildContext context) {
