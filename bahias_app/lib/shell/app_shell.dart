@@ -2,17 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-// Páginas del layout
 import '../pages/home_summary_page.dart';
 import '../pages/bahias_page.dart';
 import '../pages/reservas_page.dart';
 import '../pages/reportes_page.dart';
-import '../screens/roles_screen.dart';
-import '../screens/configuraciones_screen.dart';
+import '../screens/configuracion_screen.dart';
 import '../screens/agregar_solicitud_page.dart';
 
-
-// Servicio Firestore
 import '../services/firestore_service.dart';
 
 class AppShell extends StatefulWidget {
@@ -32,14 +28,13 @@ class _AppShellState extends State<AppShell> {
   final _firestore = FirestoreService();
 
   final List<_NavItem> _allItems = const [
-  _NavItem('Home', Icons.dashboard_outlined, permiso: 'ver'),
-  _NavItem('Bahías', Icons.directions_boat_outlined, permiso: 'ver'),
-  _NavItem('Reservas', Icons.event_available_outlined, permiso: 'crear'),
-  _NavItem('Reportes', Icons.bar_chart_rounded, permiso: 'generar_reportes'),
-  _NavItem('Agregar Solicitudes', Icons.add_circle_outline, permiso: 'crear_solicitud'),
-  _NavItem('Configuraciones', Icons.settings_outlined, permiso: 'editar'),
-];
-
+    _NavItem('Home', Icons.dashboard_outlined, permiso: 'ver'),
+    _NavItem('Bahías', Icons.directions_boat_outlined, permiso: 'ver'),
+    _NavItem('Reservas', Icons.event_available_outlined, permiso: 'crear'),
+    _NavItem('Reportes', Icons.bar_chart_rounded, permiso: 'generar_reportes'),
+    _NavItem('Agregar Solicitudes', Icons.add_circle_outline, permiso: 'crear_solicitud'),
+    _NavItem('Configuraciones', Icons.settings_outlined, permiso: 'editar'),
+  ];
 
   List<_NavItem> _filteredItems = [];
 
@@ -59,8 +54,7 @@ class _AppShellState extends State<AppShell> {
       setState(() {
         _rolData = rolData;
         final permisos = List<String>.from(rolData['permisos'] ?? []);
-        _filteredItems =
-            _allItems.where((item) => permisos.contains(item.permiso)).toList();
+        _filteredItems = _allItems.where((item) => permisos.contains(item.permiso)).toList();
         _loading = false;
       });
     } catch (e) {
@@ -77,24 +71,23 @@ class _AppShellState extends State<AppShell> {
   }
 
   Widget _pageFor(int i) {
-  switch (_filteredItems[i].label) {
-    case 'Home':
-      return const HomeSummaryPage();
-    case 'Bahías':
-      return const BahiasPage();
-    case 'Reservas':
-      return const ReservasPage();
-    case 'Reportes':
-      return const ReportesPage();
-    case 'Agregar Solicitudes':
-      return const AgregarSolicitudPage(); // ✅ nuevo
-    case 'Configuraciones':
-      return const ConfiguracionesScreen(); // ✅ ahora usa la nueva vista con Roles, Asignaciones, Temas
-    default:
-      return const HomeSummaryPage();
+    switch (_filteredItems[i].label) {
+      case 'Home':
+        return const HomeSummaryPage();
+      case 'Bahías':
+        return const BahiasPage();
+      case 'Reservas':
+        return const ReservasPage();
+      case 'Reportes':
+        return const ReportesPage();
+      case 'Agregar Solicitudes':
+        return const AgregarSolicitudPage();
+      case 'Configuraciones':
+        return const ConfiguracionScreen();
+      default:
+        return const HomeSummaryPage();
+    }
   }
-}
-
 
   @override
   Widget build(BuildContext context) {
@@ -102,6 +95,7 @@ class _AppShellState extends State<AppShell> {
     final isDesktop = w >= 900;
     final isTablet = w >= 600 && w < 900;
     final showRail = isDesktop || isTablet;
+    final theme = Theme.of(context);
 
     if (_loading) {
       return const Scaffold(
@@ -112,7 +106,7 @@ class _AppShellState extends State<AppShell> {
     return Scaffold(
       appBar: AppBar(
         title: Text(_filteredItems[_index].label),
-        backgroundColor: Colors.black,
+        backgroundColor: theme.colorScheme.surfaceVariant,
         actions: [
           if (_rolData != null)
             Padding(
@@ -180,10 +174,11 @@ class _AppShellState extends State<AppShell> {
               extended: _railExpanded,
               selectedIndex: _index,
               onDestinationSelected: (i) => setState(() => _index = i),
-              backgroundColor: const Color(0xFF111511),
+              backgroundColor: theme.colorScheme.surface,
               indicatorColor: Colors.greenAccent.withOpacity(0.15),
               selectedIconTheme: const IconThemeData(color: Colors.greenAccent),
               selectedLabelTextStyle: const TextStyle(color: Colors.greenAccent),
+              unselectedLabelTextStyle: const TextStyle(color: Colors.white70),
               leading: Padding(
                 padding: const EdgeInsets.only(top: 12.0),
                 child: CircleAvatar(
@@ -196,23 +191,19 @@ class _AppShellState extends State<AppShell> {
                 children: [
                   IconButton(
                     tooltip: _railExpanded ? 'Colapsar' : 'Expandir',
-                    icon: Icon(_railExpanded
-                        ? Icons.legend_toggle
-                        : Icons.menu_open),
-                    onPressed: () =>
-                        setState(() => _railExpanded = !_railExpanded),
+                    icon: Icon(_railExpanded ? Icons.legend_toggle : Icons.menu_open),
+                    onPressed: () => setState(() => _railExpanded = !_railExpanded),
                   ),
                   IconButton(
                     tooltip: 'Cerrar sesión',
-                    icon:
-                        const Icon(Icons.logout, color: Colors.redAccent),
+                    icon: const Icon(Icons.logout, color: Colors.redAccent),
                     onPressed: _logout,
                   ),
                 ],
               ),
               destinations: _filteredItems.map((e) {
                 return NavigationRailDestination(
-                  icon: Icon(e.icon, color: Colors.white70),
+                  icon: Icon(e.icon, color: theme.colorScheme.onSurface.withOpacity(0.5)),
                   selectedIcon: Icon(e.icon, color: Colors.greenAccent),
                   label: Text(e.label),
                 );
