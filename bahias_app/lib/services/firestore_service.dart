@@ -12,7 +12,15 @@ class FirestoreService {
         'nombre': 'Administrador',
         'permisos': ['crear', 'editar', 'eliminar', 'ver']
       });
-      await _db.collection('Roles').doc('viewer').set({
+      await _db.collection('Roles').doc('operador').set({
+        'nombre': 'Operador',
+        'permisos': ['crear', 'editar', 'ver']
+      });
+      await _db.collection('Roles').doc('report').set({
+        'nombre': 'Reportes',
+        'permisos': ['ver', 'generar_reportes']
+      });
+            await _db.collection('Roles').doc('cliente').set({
         'nombre': 'Solo lectura',
         'permisos': ['ver']
       });
@@ -25,7 +33,7 @@ class FirestoreService {
     final snap = await userDoc.get();
 
     if (!snap.exists) {
-      final rolRef = _db.collection('Roles').doc('viewer');
+      final rolRef = _db.collection('Roles').doc('cliente');
       await userDoc.set({
         'nombre': user.displayName,
         'correo': user.email,
