@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:bahias_app/services/firestore_service.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -16,28 +17,39 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _obscure = true;
   bool _loading = false;
 
-  Future<void> _signInWithGoogle() async {
-    try {
-      setState(() => _loading = true);
-      final googleUser = await GoogleSignIn().signIn();
-      if (googleUser == null) return;
+Future<void> _signInWithGoogle() async {
+  try {
+    setState(() => _loading = true);
+    final googleUser = await GoogleSignIn().signIn();
+    if (googleUser == null) return;
 
-      final googleAuth = await googleUser.authentication;
-      final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
+    final googleAuth = await googleUser.authentication;
+    final credential = GoogleAuthProvider.credential(
+      accessToken: googleAuth.accessToken,
+      idToken: googleAuth.idToken,
+    );
 
-      await FirebaseAuth.instance.signInWithCredential(credential);
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error al iniciar sesión: $e")),
-      );
-    } finally {
-      setState(() => _loading = false);
+    // Iniciar sesión en Firebase
+    await FirebaseAuth.instance.signInWithCredential(credential);
+
+    // Asegurar roles y usuario
+    final firestoreService = FirestoreService();
+    await firestoreService.ensureBaseRoles();
+    await firestoreService.ensureUserDocument();
+
+    // Redirigir a la siguiente pantalla
+    if (mounted) {
+      Navigator.pushReplacementNamed(context, '/home');
     }
-  }
 
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Error al iniciar sesión: $e")),
+    );
+  } finally {
+    setState(() => _loading = false);
+  }
+}
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
