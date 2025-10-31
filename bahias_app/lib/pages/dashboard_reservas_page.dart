@@ -11,7 +11,7 @@ class EstadisticasPage extends StatefulWidget {
 }
 
 class _EstadisticasPageState extends State<EstadisticasPage> {
-  final _firestore = FirebaseFirestore.instance;
+
 
   @override
   Widget build(BuildContext context) {

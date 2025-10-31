@@ -33,7 +33,7 @@ class _BahiasPageState extends State<BahiasPage> {
     final estadoRefDefault = _firestore.collection('Tipo_Estado').doc('Libre');
     final ubicacionRefDefault = _firestore.collection('Ubicacion').doc('Ubicacion 1');
 
-    final bahias = await coll.get();
+    //final bahias = await coll.get();
 
     for (int i = 1; i <= 35; i++) {
       final docId = i.toString().padLeft(2, '0');

@@ -190,7 +190,7 @@ class _SummaryCard extends StatefulWidget {
     required this.icon,
     required this.subtitle,
     required this.percent,
-    super.key,
+//    super.key,
   });
 
   @override
