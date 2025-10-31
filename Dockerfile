@@ -28,8 +28,8 @@ COPY --from=build /app/build/web /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Copiar certificados al contenedor
-COPY fullchain.pem /etc/ssl/certs/fullchain.pem
-COPY privkey.pem /etc/ssl/private/privkey.pem
+COPY ./fullchain.pem /etc/ssl/certs/fullchain.pem
+COPY ./privkey.pem /etc/ssl/private/privkey.pem
 
 EXPOSE 80
 EXPOSE 443
