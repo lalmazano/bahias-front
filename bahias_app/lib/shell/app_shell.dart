@@ -1,14 +1,13 @@
+import 'package:bahias_app/pages/home_summary_page.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
-import '../pages/home_summary_page.dart';
 import '../pages/bahias_page.dart';
 import '../pages/reservas_page.dart';
 import '../pages/reportes_page.dart';
 import '../screens/configuracion_screen.dart';
 import '../screens/agregar_solicitud_page.dart';
-
+import '../pages/dashboard_reservas_page.dart';
 import '../services/firestore_service.dart';
 
 class AppShell extends StatefulWidget {
@@ -29,6 +28,7 @@ class _AppShellState extends State<AppShell> {
 
   final List<_NavItem> _allItems = const [
     _NavItem('Home', Icons.dashboard_outlined, permiso: 'ver'),
+    _NavItem('Estadisticas', Icons.dashboard_outlined, permiso: 'ver'),
     _NavItem('Bahías', Icons.directions_boat_outlined, permiso: 'ver'),
     _NavItem('Reservas', Icons.event_available_outlined, permiso: 'crear'),
     _NavItem('Reportes', Icons.bar_chart_rounded, permiso: 'generar_reportes'),
@@ -84,6 +84,8 @@ class _AppShellState extends State<AppShell> {
         return const AgregarSolicitudPage();
       case 'Configuraciones':
         return const ConfiguracionScreen();
+      case 'Estadisticas':
+        return const EstadisticasPage();
       default:
         return const HomeSummaryPage();
     }

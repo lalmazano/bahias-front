@@ -24,11 +24,14 @@ class _BahiasPageState extends State<BahiasPage> {
     _ensureDefaultBahias();
   }
 
-  /// 🔧 Crear las primeras 35 bahías si no existen o faltan campos
+  /// 🔧 Crear colecciones base y bahías por defecto
   Future<void> _ensureDefaultBahias() async {
+    await _ensureDefaultUbicaciones(); // 🆕 primero aseguramos ubicaciones
+
     final coll = _firestore.collection('Bahias');
     final tipoRefDefault = _firestore.collection('Tipo_Bahia').doc('General');
     final estadoRefDefault = _firestore.collection('Tipo_Estado').doc('Libre');
+    final ubicacionRefDefault = _firestore.collection('Ubicacion').doc('Ubicacion 1');
 
     final bahias = await coll.get();
 
@@ -38,21 +41,36 @@ class _BahiasPageState extends State<BahiasPage> {
       final snap = await docRef.get();
 
       if (!snap.exists) {
-        // Crear bahía nueva si no existe
         await docRef.set({
           'No_Bahia': i,
           'Nombre': 'Bahía $i',
           'TipoRef': tipoRefDefault,
           'EstadoRef': estadoRefDefault,
+          'UbicacionRef': ubicacionRefDefault,
         });
       } else {
-        // Verificar y corregir campos faltantes
         await _ensureCamposBahia(docRef, snap);
       }
     }
   }
 
-  /// 🔍 Verifica y crea campos si faltan en una bahía
+  /// 🧩 Crear ubicaciones base si no existen
+  Future<void> _ensureDefaultUbicaciones() async {
+    final coll = _firestore.collection('Ubicacion');
+    for (int i = 1; i <= 3; i++) {
+      final docId = 'Ubicacion $i';
+      final docRef = coll.doc(docId);
+      final snap = await docRef.get();
+      if (!snap.exists) {
+        await docRef.set({
+          'Nombre': 'Ubicación $i',
+          'Descripcion': 'Zona o área base número $i',
+        });
+      }
+    }
+  }
+
+  /// 🔍 Verifica y crea campos faltantes
   Future<void> _ensureCamposBahia(
       DocumentReference<Map<String, dynamic>> docRef,
       DocumentSnapshot<Map<String, dynamic>> snap) async {
@@ -61,27 +79,26 @@ class _BahiasPageState extends State<BahiasPage> {
 
     final tipoRefDefault = _firestore.collection('Tipo_Bahia').doc('General');
     final estadoRefDefault = _firestore.collection('Tipo_Estado').doc('Libre');
+    final ubicacionRefDefault = _firestore.collection('Ubicacion').doc('Ubicacion 1');
 
     if (!data.containsKey('No_Bahia')) {
       final idNum = int.tryParse(docRef.id) ?? 0;
       updates['No_Bahia'] = idNum;
     }
-
     if (!data.containsKey('Nombre')) {
       updates['Nombre'] = 'Bahía ${data['No_Bahia'] ?? docRef.id}';
     }
-
     if (!data.containsKey('TipoRef') || data['TipoRef'] == null) {
       updates['TipoRef'] = tipoRefDefault;
     }
-
     if (!data.containsKey('EstadoRef') || data['EstadoRef'] == null) {
       updates['EstadoRef'] = estadoRefDefault;
     }
-
-    if (updates.isNotEmpty) {
-      await docRef.update(updates);
+    if (!data.containsKey('UbicacionRef') || data['UbicacionRef'] == null) {
+      updates['UbicacionRef'] = ubicacionRefDefault;
     }
+
+    if (updates.isNotEmpty) await docRef.update(updates);
   }
 
   Color _estadoColor(String estado) {
@@ -153,6 +170,13 @@ class _BahiasPageState extends State<BahiasPage> {
               backgroundColor: Colors.orangeAccent,
               onTap: _mostrarSelectorTipo,
             ),
+          if (_selected.isNotEmpty)
+            SpeedDialChild(
+              child: const Icon(Icons.location_on_outlined),
+              label: "Cambiar ubicación",
+              backgroundColor: Colors.deepPurpleAccent,
+              onTap: _mostrarSelectorUbicacion,
+            ),
           if (_selected.isNotEmpty && !_hasProtectedSelected)
             SpeedDialChild(
               child: const Icon(Icons.delete),
@@ -174,12 +198,10 @@ class _BahiasPageState extends State<BahiasPage> {
           final filtered = docs.where((d) {
             final estado = (d['EstadoRef'] as DocumentReference?)?.id ?? '';
             final tipo = (d['TipoRef'] as DocumentReference?)?.id ?? '';
-
             final matchEstado = _filtroEstado == 'Todos' ||
                 estado.toLowerCase() == _filtroEstado.toLowerCase();
             final matchTipo = _filtroTipo == 'Todos' ||
                 tipo.toLowerCase() == _filtroTipo.toLowerCase();
-
             return matchEstado && matchTipo;
           }).toList();
 
@@ -208,12 +230,13 @@ class _BahiasPageState extends State<BahiasPage> {
               final no = data['No_Bahia'] ?? 0;
               final tipoRef = data['TipoRef'] as DocumentReference?;
               final estadoRef = data['EstadoRef'] as DocumentReference?;
+              final ubicacionRef = data['UbicacionRef'] as DocumentReference?;
               final docId = filtered[i].id;
               final selected = _selected.contains(docId);
               final isProtected = no <= 35;
 
               return FutureBuilder(
-                future: _ensureReferences(tipoRef, estadoRef),
+                future: _ensureReferences(tipoRef, estadoRef, ubicacionRef),
                 builder: (context, snap2) {
                   if (!snap2.hasData) {
                     return const Center(
@@ -222,6 +245,7 @@ class _BahiasPageState extends State<BahiasPage> {
 
                   final tipoNombre = snap2.data![0]?.id ?? 'Sin tipo';
                   final estadoNombre = snap2.data![1]?.id ?? 'Sin estado';
+                  final ubicacionNombre = snap2.data![2]?.id ?? 'Sin ubicación';
                   final estadoColor = _estadoColor(estadoNombre);
 
                   return GestureDetector(
@@ -272,17 +296,12 @@ class _BahiasPageState extends State<BahiasPage> {
                             ),
                           ),
                           const SizedBox(height: 10),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(Icons.local_shipping_outlined,
-                                  color: Colors.greenAccent, size: 16),
-                              const SizedBox(width: 6),
-                              Text("Tipo: $tipoNombre",
-                                  style: const TextStyle(
-                                      color: Colors.greenAccent, fontSize: 13)),
-                            ],
-                          ),
+                          Text("Tipo: $tipoNombre",
+                              style: const TextStyle(
+                                  color: Colors.greenAccent, fontSize: 13)),
+                          Text("Ubicación: $ubicacionNombre",
+                              style: const TextStyle(
+                                  color: Colors.orangeAccent, fontSize: 13)),
                           if (isProtected)
                             const Padding(
                               padding: EdgeInsets.only(top: 8),
@@ -302,7 +321,7 @@ class _BahiasPageState extends State<BahiasPage> {
     );
   }
 
-  /// 🧠 Actualizar estado de selección
+ /// 🧠 Actualizar estado de selección
   void _updateSelectionState(List<QueryDocumentSnapshot> docs) {
     bool hasProtected = false;
     bool allMaintenance = true;
@@ -321,7 +340,7 @@ class _BahiasPageState extends State<BahiasPage> {
     });
   }
 
-  /// 🧰 Cambiar estado
+  /// 🧰 Cambiar estado a mantenimiento
   Future<void> _setToMaintenance() async {
     final estado = _firestore.collection('Tipo_Estado').doc('Mantenimiento');
     for (final id in _selected) {
@@ -333,6 +352,7 @@ class _BahiasPageState extends State<BahiasPage> {
     });
   }
 
+  /// 🔄 Cambiar estado a libre
   Future<void> _setToFree() async {
     final estado = _firestore.collection('Tipo_Estado').doc('Libre');
     for (final id in _selected) {
@@ -344,7 +364,7 @@ class _BahiasPageState extends State<BahiasPage> {
     });
   }
 
-  /// 🗑️ Eliminar
+  /// 🗑️ Eliminar bahías seleccionadas
   Future<void> _confirmDeleteSelected() async {
     for (final id in _selected) {
       final doc = await _firestore.collection('Bahias').doc(id).get();
@@ -353,15 +373,16 @@ class _BahiasPageState extends State<BahiasPage> {
     }
     setState(() => _selected.clear());
   }
-
-  /// 🔍 Crear referencias por defecto
+  /// 🔍 Garantizar referencias válidas
   Future<List<DocumentSnapshot?>> _ensureReferences(
-      DocumentReference? tipoRef, DocumentReference? estadoRef) async {
+      DocumentReference? tipoRef,
+      DocumentReference? estadoRef,
+      DocumentReference? ubicacionRef) async {
     tipoRef ??= _firestore.collection('Tipo_Bahia').doc('General');
     estadoRef ??= _firestore.collection('Tipo_Estado').doc('Libre');
-    return [await tipoRef.get(), await estadoRef.get()];
+    ubicacionRef ??= _firestore.collection('Ubicacion').doc('Ubicacion 1');
+    return [await tipoRef.get(), await estadoRef.get(), await ubicacionRef.get()];
   }
-
   /// 🔍 Modal filtros
   Future<void> _mostrarModalFiltros() async {
     String estadoTemp = _filtroEstado;
@@ -558,5 +579,71 @@ class _BahiasPageState extends State<BahiasPage> {
       'TipoRef': tipoRef,
       'EstadoRef': estadoRef,
     });
+  }
+
+   /// 📍 Cambiar ubicación
+  Future<void> _mostrarSelectorUbicacion() async {
+    final ubicacionesSnap = await _firestore.collection('Ubicacion').get();
+    final ubicaciones = ubicacionesSnap.docs.map((e) => e.id).toList();
+    String ubicacionSel = ubicaciones.first;
+
+    final resultado = await showDialog<String>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          backgroundColor: const Color(0xFF111511),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Text("Cambiar ubicación de Bahía",
+              style: TextStyle(
+                  color: Colors.greenAccent,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold)),
+          content: DropdownButton<String>(
+            value: ubicacionSel,
+            dropdownColor: const Color(0xFF111511),
+            isExpanded: true,
+            iconEnabledColor: Colors.greenAccent,
+            underline: Container(height: 1, color: Colors.greenAccent),
+            items: ubicaciones
+                .map(
+                  (e) => DropdownMenuItem(
+                    value: e,
+                    child: Text(e, style: const TextStyle(color: Colors.white)),
+                  ),
+                )
+                .toList(),
+            onChanged: (v) => setDialogState(() => ubicacionSel = v!),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Cancelar", style: TextStyle(color: Colors.white70)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.greenAccent),
+              onPressed: () => Navigator.pop(context, ubicacionSel),
+              child: const Text("Aplicar", style: TextStyle(color: Colors.black)),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (resultado != null) {
+      final ubicacionRef = _firestore.collection('Ubicacion').doc(resultado);
+      for (final id in _selected) {
+        await _firestore.collection('Bahias').doc(id).update({
+          'UbicacionRef': ubicacionRef,
+        });
+      }
+
+      setState(() => _selected.clear());
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Ubicación cambiada a '$resultado'"),
+          backgroundColor: Colors.deepPurpleAccent,
+        ),
+      );
+    }
   }
 }
