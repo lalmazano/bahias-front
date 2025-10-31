@@ -5,11 +5,12 @@ WORKDIR /app
 RUN flutter config --enable-web
 
 # Cachear dependencias
-COPY pubspec.yaml pubspec.lock* ./
+COPY ./bahias_app/pubspec.yaml  ./
+COPY ./bahias_app/pubspec.lock* ./
 RUN flutter pub get
 
 # Copiar el resto del código y compilar
-COPY . .
+COPY ./bahias_app .
 RUN flutter build web --release
 
 # Etapa 2: Nginx para servir estático

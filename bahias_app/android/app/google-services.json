@@ -1,0 +1,62 @@
+{
+  "project_info": {
+    "project_number": "286265416101",
+    "project_id": "bahias-2ea5b",
+    "storage_bucket": "bahias-2ea5b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:286265416101:android:86acdbced3bada09df304c",
+        "android_client_info": {
+          "package_name": "com.example.bahias_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "286265416101-ftspdsh6307abktk2ej3a22m4j4e6tpv.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.bahias_app",
+            "certificate_hash": "fe6ae6b91c6c5fe773f3e3ebfdf53245958c29c9"
+          }
+        },
+        {
+          "client_id": "286265416101-p4a5ae5g6ursndgepbbjfmfdbelpaog4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.bahias_app",
+            "certificate_hash": "cb393c9fa2778cbf9c9476381b9bfbcebab3a010"
+          }
+        },
+        {
+          "client_id": "286265416101-l9ufepdosekt2pk59po6ftli29695782.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyABaoBNqsmW6wV5HZpP0gNKodBwfmKtz1A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "286265416101-l9ufepdosekt2pk59po6ftli29695782.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "286265416101-0gr9f58dfhgq8ve2l2bffagou2ed5o6g.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.bahiasApp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
