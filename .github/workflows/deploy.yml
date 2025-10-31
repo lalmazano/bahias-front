@@ -9,15 +9,15 @@ jobs:
     runs-on: [self-hosted]  # etiquetas del runner
     steps:
       - name: Actualizar código
-        working-directory: /opt/repositorio/bahias-front/bahias_app
+        working-directory: /opt/repositorio/bahias-front/
         run: git pull origin main
 
       - name: Construir contenedores
-        working-directory: /opt/repositorio/bahias-front/bahias_app
+        working-directory: /opt/repositorio/bahias-front/
         run: docker compose build
 
       - name: Reiniciar servicios
-        working-directory: /opt/repositorio/bahias-front/bahias_app
+        working-directory: /opt/repositorio/bahias-front/
         run: |
           docker compose down
           docker compose up -d
