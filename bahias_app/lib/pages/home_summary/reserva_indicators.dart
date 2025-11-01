@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'home.dart';
+import 'widgets.dart';
 
 class ReservaIndicators extends StatelessWidget {
   const ReservaIndicators({super.key});

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'estadisticas/estadisticas.dart';
+import 'estadisticas/widgets.dart';
 
 class EstadisticasPage extends StatelessWidget {
   const EstadisticasPage({super.key});

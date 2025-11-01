@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../services/services.dart';
-import 'estadisticas.dart';
+import 'widgets.dart';
 
 class ReservasPorUsuario extends StatelessWidget {
   const ReservasPorUsuario({super.key});
