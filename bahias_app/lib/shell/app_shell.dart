@@ -23,13 +23,13 @@ class _AppShellState extends State<AppShell> {
   final _firestore = FirestoreService();
 
   final List<_NavItem> _allItems = const [
-    _NavItem('Home', Icons.dashboard_outlined, permiso: 'ver'),
-    _NavItem('Estadisticas', Icons.dashboard_outlined, permiso: 'ver'),
-    _NavItem('Bahías', Icons.directions_boat_outlined, permiso: 'ver'),
-    _NavItem('Reservas', Icons.event_available_outlined, permiso: 'crear'),
+    _NavItem('Home', Icons.dashboard_outlined, permiso: 'visualizar_home'),
+    _NavItem('Estadisticas', Icons.dashboard_outlined, permiso: 'visualizar_estadisticas'),
+    _NavItem('Bahías', Icons.directions_boat_outlined, permiso: 'visualizar_bahias'),
+    _NavItem('Reservas', Icons.event_available_outlined, permiso: 'agendar_reservas'),
     _NavItem('Reportes', Icons.bar_chart_rounded, permiso: 'generar_reportes'),
     _NavItem('Agregar Solicitudes', Icons.add_circle_outline, permiso: 'crear_solicitud'),
-    _NavItem('Configuraciones', Icons.settings_outlined, permiso: 'editar'),
+    _NavItem('Configuraciones', Icons.settings_outlined, permiso: 'modificar_configuraciones'),
   ];
 
   List<_NavItem> _filteredItems = [];

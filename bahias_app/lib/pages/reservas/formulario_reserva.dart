@@ -5,8 +5,13 @@ import '../../services/services.dart';
 
 class FormularioReserva extends StatefulWidget {
   final ReservaService service;
+  final bool puedeAsignarUsuario; // ← se recibe desde ReservasPage
 
-  const FormularioReserva({super.key, required this.service});
+  const FormularioReserva({
+    super.key,
+    required this.service,
+    this.puedeAsignarUsuario = false,
+  });
 
   @override
   State<FormularioReserva> createState() => _FormularioReservaState();
@@ -21,7 +26,9 @@ class _FormularioReservaState extends State<FormularioReserva> {
   String? usuarioSel;
 
   bool cargandoBahias = false;
+  bool cargandoUsuarios = false;
   List<QueryDocumentSnapshot<Map<String, dynamic>>> bahiasDisponibles = [];
+  List<QueryDocumentSnapshot<Map<String, dynamic>>> usuarios = [];
 
   /// 🔍 Obtiene bahías disponibles según rango de fechas
   Future<List<QueryDocumentSnapshot<Map<String, dynamic>>>> _obtenerBahiasDisponibles(
@@ -43,7 +50,6 @@ class _FormularioReservaState extends State<FormularioReserva> {
       final bahiasRefs =
           (data['BahiasRefs'] as List?)?.cast<DocumentReference>() ?? [];
 
-      // Detectar solapamientos de rango
       final seSolapan =
           (inicio.isBefore(finExistente) && fin.isAfter(inicioExistente));
 
@@ -54,25 +60,24 @@ class _FormularioReservaState extends State<FormularioReserva> {
       }
     }
 
-    // Traer todas las bahías
     final todasBahias = await _firestore.collection('Bahias').get();
-
-    // Filtrar las disponibles
     return todasBahias.docs
         .where((b) => !bahiasOcupadas.contains(b.id))
         .toList();
   }
 
-  /// 🔧 Carga inicial del usuario actual
+  /// 🔧 Carga inicial del usuario actual y lista si tiene permiso
   Future<void> _initUser() async {
-    final usuariosSnap = await _firestore.collection('Usuarios').get();
     final currentUser = _auth.currentUser;
     if (currentUser == null) return;
 
-    final currentUserId = currentUser.uid;
-    final coincidencias = usuariosSnap.docs.where((d) => d.id == currentUserId).toList();
-    if (coincidencias.isNotEmpty) {
-      usuarioSel = currentUserId;
+    usuarioSel = currentUser.uid; // por defecto su propio usuario
+
+    if (widget.puedeAsignarUsuario) {
+      setState(() => cargandoUsuarios = true);
+      final usuariosSnap = await _firestore.collection('Usuarios').get();
+      usuarios = usuariosSnap.docs;
+      setState(() => cargandoUsuarios = false);
     }
   }
 
@@ -119,20 +124,53 @@ class _FormularioReservaState extends State<FormularioReserva> {
       insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
       child: SingleChildScrollView(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 320),
+          constraints: const BoxConstraints(maxWidth: 340),
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text("Nueva Reserva",
-                    style: TextStyle(
-                        color: Colors.greenAccent,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 20)),
+                const Text(
+                  "Nueva Reserva",
+                  style: TextStyle(
+                    color: Colors.greenAccent,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                  ),
+                ),
                 const SizedBox(height: 16),
 
-                // Selección de fecha/hora de inicio
+                // 🧑‍💻 Selección de usuario (solo admin u operador)
+                if (widget.puedeAsignarUsuario)
+                  cargandoUsuarios
+                      ? const CircularProgressIndicator(color: Colors.greenAccent)
+                      : DropdownButtonFormField<String>(
+                          value: usuarioSel,
+                          dropdownColor: const Color(0xFF222222),
+                          decoration: const InputDecoration(
+                            labelText: "Asignar a usuario",
+                            labelStyle: TextStyle(color: Colors.white70),
+                          ),
+                          items: usuarios.map((u) {
+                            return DropdownMenuItem<String>(
+                              value: u.id,
+                              child: Text(
+                                u['nombre'] ?? u['correo'] ?? 'Sin nombre',
+                                style: const TextStyle(color: Colors.white),
+                              ),
+                            );
+                          }).toList(),
+                          onChanged: (val) => setState(() => usuarioSel = val),
+                        )
+                else
+                  Text(
+                    "Usuario: ${_auth.currentUser?.email ?? 'Desconocido'}",
+                    style: const TextStyle(color: Colors.white70),
+                  ),
+
+                const SizedBox(height: 20),
+
+                // 📅 Fecha/hora inicio
                 TextButton(
                   onPressed: () async {
                     final pickedDate = await showDatePicker(
@@ -168,13 +206,13 @@ class _FormularioReservaState extends State<FormularioReserva> {
                   ),
                 ),
 
-                // Selección de fecha/hora de fin
+                // 📅 Fecha/hora fin
                 TextButton(
                   onPressed: () async {
                     if (inicio == null) {
                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                          content:
-                              Text("Primero selecciona la fecha de inicio.")));
+                        content: Text("Primero selecciona la fecha de inicio."),
+                      ));
                       return;
                     }
                     final pickedDate = await showDatePicker(
@@ -197,10 +235,9 @@ class _FormularioReservaState extends State<FormularioReserva> {
                           pickedTime.minute,
                         );
                         if (newFin.isBefore(inicio!)) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content: Text(
-                                      "La fecha de fin no puede ser menor a la de inicio.")));
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                            content: Text("La fecha de fin no puede ser menor a la de inicio."),
+                          ));
                           return;
                         }
                         setState(() => fin = newFin);
@@ -217,8 +254,10 @@ class _FormularioReservaState extends State<FormularioReserva> {
                 ),
 
                 const SizedBox(height: 16),
-                const Text("Seleccionar Bahías disponibles",
-                    style: TextStyle(color: Colors.white70, fontSize: 14)),
+                const Text(
+                  "Seleccionar Bahías disponibles",
+                  style: TextStyle(color: Colors.white70, fontSize: 14),
+                ),
                 const SizedBox(height: 8),
 
                 if (cargandoBahias)
@@ -227,11 +266,15 @@ class _FormularioReservaState extends State<FormularioReserva> {
                     child: CircularProgressIndicator(color: Colors.greenAccent),
                   )
                 else if (inicio == null || fin == null)
-                  const Text("Selecciona fecha y hora para ver bahías.",
-                      style: TextStyle(color: Colors.white54, fontSize: 12))
+                  const Text(
+                    "Selecciona fecha y hora para ver bahías.",
+                    style: TextStyle(color: Colors.white54, fontSize: 12),
+                  )
                 else if (bahiasDisponibles.isEmpty)
-                  const Text("No hay bahías disponibles en este rango.",
-                      style: TextStyle(color: Colors.redAccent, fontSize: 12))
+                  const Text(
+                    "No hay bahías disponibles en este rango.",
+                    style: TextStyle(color: Colors.redAccent, fontSize: 12),
+                  )
                 else
                   Wrap(
                     spacing: 6,
@@ -250,9 +293,7 @@ class _FormularioReservaState extends State<FormularioReserva> {
                         selectedColor: Colors.greenAccent,
                         onSelected: (val) {
                           setState(() {
-                            val
-                                ? seleccionadas.add(b.id)
-                                : seleccionadas.remove(b.id);
+                            val ? seleccionadas.add(b.id) : seleccionadas.remove(b.id);
                           });
                         },
                       );
