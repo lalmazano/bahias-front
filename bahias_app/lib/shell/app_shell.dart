@@ -1,13 +1,9 @@
-import 'package:bahias_app/pages/home_summary_page.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../pages/menu.dart';
 
-import '../pages/bahias_page.dart';
-import '../pages/reservas_page.dart';
-import '../pages/reportes_page.dart';
 import '../screens/configuracion_screen.dart';
 import '../screens/agregar_solicitud_page.dart';
-import '../pages/dashboard_reservas_page.dart';
 import '../services/firestore_service.dart';
 
 class AppShell extends StatefulWidget {
@@ -27,13 +23,13 @@ class _AppShellState extends State<AppShell> {
   final _firestore = FirestoreService();
 
   final List<_NavItem> _allItems = const [
-    _NavItem('Home', Icons.dashboard_outlined, permiso: 'ver'),
-    _NavItem('Estadisticas', Icons.dashboard_outlined, permiso: 'ver'),
-    _NavItem('Bahías', Icons.directions_boat_outlined, permiso: 'ver'),
-    _NavItem('Reservas', Icons.event_available_outlined, permiso: 'crear'),
+    _NavItem('Home', Icons.dashboard_outlined, permiso: 'visualizar_home'),
+    _NavItem('Estadisticas', Icons.dashboard_outlined, permiso: 'visualizar_estadisticas'),
+    _NavItem('Bahías', Icons.directions_boat_outlined, permiso: 'visualizar_bahias'),
+    _NavItem('Reservas', Icons.event_available_outlined, permiso: 'agendar_reservas'),
     _NavItem('Reportes', Icons.bar_chart_rounded, permiso: 'generar_reportes'),
     _NavItem('Agregar Solicitudes', Icons.add_circle_outline, permiso: 'crear_solicitud'),
-    _NavItem('Configuraciones', Icons.settings_outlined, permiso: 'editar'),
+    _NavItem('Configuraciones', Icons.settings_outlined, permiso: 'modificar_configuraciones'),
   ];
 
   List<_NavItem> _filteredItems = [];

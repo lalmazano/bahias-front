@@ -17,39 +17,39 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _obscure = true;
   bool _loading = false;
 
-Future<void> _signInWithGoogle() async {
-  try {
-    setState(() => _loading = true);
-    final googleUser = await GoogleSignIn().signIn();
-    if (googleUser == null) return;
+  Future<void> _signInWithGoogle() async {
+    try {
+      setState(() => _loading = true);
+      final googleUser = await GoogleSignIn().signIn();
+      if (googleUser == null) return;
 
-    final googleAuth = await googleUser.authentication;
-    final credential = GoogleAuthProvider.credential(
-      accessToken: googleAuth.accessToken,
-      idToken: googleAuth.idToken,
-    );
+      final googleAuth = await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
 
-    // Iniciar sesión en Firebase
-    await FirebaseAuth.instance.signInWithCredential(credential);
+      // Iniciar sesión en Firebase
+      await FirebaseAuth.instance.signInWithCredential(credential);
 
-    // Asegurar roles y usuario
-    final firestoreService = FirestoreService();
-    await firestoreService.ensureBaseRoles();
-    await firestoreService.ensureUserDocument();
+      // Asegurar roles y usuario
+      final firestoreService = FirestoreService();
+      await firestoreService.ensureBaseRoles();
+      await firestoreService.ensureUserDocument();
 
-    // Redirigir a la siguiente pantalla
-    if (mounted) {
-      Navigator.pushReplacementNamed(context, '/home');
+      // Redirigir a la siguiente pantalla
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, '/home');
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error al iniciar sesión: $e")),
+      );
+    } finally {
+      setState(() => _loading = false);
     }
-
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Error al iniciar sesión: $e")),
-    );
-  } finally {
-    setState(() => _loading = false);
   }
-}
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -179,57 +179,31 @@ Future<void> _signInWithGoogle() async {
                   const Divider(color: Colors.white24),
                   const SizedBox(height: 15),
 
-                  // Botones sociales
+                  // 🔹 Botón único de Google
                   _loading
                       ? const CircularProgressIndicator(
                           color: Colors.greenAccent)
-                      : Column(
-                          children: [
-                            SizedBox(
-                              width: double.infinity,
-                              height: 45,
-                              child: ElevatedButton.icon(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.white,
-                                  foregroundColor: Colors.black,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(30),
-                                  ),
-                                ),
-                                icon: const FaIcon(
-                                  FontAwesomeIcons.google,
-                                  color: Colors.red,
-                                ),
-                                label: const Text(
-                                  "Continuar con Google",
-                                  style: TextStyle(fontSize: 15),
-                                ),
-                                onPressed: _signInWithGoogle,
+                      : SizedBox(
+                          width: double.infinity,
+                          height: 45,
+                          child: ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              foregroundColor: Colors.black,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30),
                               ),
                             ),
-                            const SizedBox(height: 10),
-                            SizedBox(
-                              width: double.infinity,
-                              height: 45,
-                              child: ElevatedButton.icon(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF0078D4),
-                                  foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(30),
-                                  ),
-                                ),
-                                icon: const FaIcon(
-                                    FontAwesomeIcons.microsoft,
-                                    color: Colors.white),
-                                label: const Text(
-                                  "Continuar con Microsoft",
-                                  style: TextStyle(fontSize: 15),
-                                ),
-                                onPressed: () {},
-                              ),
+                            icon: const FaIcon(
+                              FontAwesomeIcons.google,
+                              color: Colors.red,
                             ),
-                          ],
+                            label: const Text(
+                              "Continuar con Google",
+                              style: TextStyle(fontSize: 15),
+                            ),
+                            onPressed: _signInWithGoogle,
+                          ),
                         ),
                 ],
               ),
