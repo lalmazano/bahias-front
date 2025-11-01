@@ -4,6 +4,7 @@ import 'package:bahias_app/screens/asignacion_roles_screen.dart';
 import 'package:bahias_app/screens/theme_screen.dart';
 import 'package:bahias_app/screens/tipo_bahia_screen.dart';
 import 'package:bahias_app/screens/estado_bahia_screen.dart';
+import 'package:bahias_app/screens/parametros_screen.dart'; 
 
 class ConfiguracionScreen extends StatelessWidget {
   const ConfiguracionScreen({super.key});
@@ -58,7 +59,8 @@ class ConfiguracionScreen extends StatelessWidget {
             ),
           ),
           const Divider(color: Colors.white24, height: 1),
-          ListTile(
+          ListTile
+          (
             leading: const Icon(Icons.toggle_on_outlined,
                 color: Colors.greenAccent),
             title: const Text('Estado de Bahía',
@@ -69,6 +71,19 @@ class ConfiguracionScreen extends StatelessWidget {
             ),
           ),
           const Divider(color: Colors.white24, height: 1),
+
+          // 👇 NUEVA OPCIÓN
+          ListTile(
+            leading: const Icon(Icons.tune, color: Colors.greenAccent),
+            title: const Text('Parámetros',
+                style: TextStyle(color: Colors.white)),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const ParametrosScreen()),
+            ),
+          ),
+          const Divider(color: Colors.white24, height: 1),
+
           const SizedBox(height: 20),
         ],
       ),
