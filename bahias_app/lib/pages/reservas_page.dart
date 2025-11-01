@@ -19,7 +19,7 @@ class _ReservasPageState extends State<ReservasPage> {
     _ensureBaseData();
   }
 
-  /// 🔧 Crea colecciones base si no existen
+  // Crea colecciones base si no existen
   Future<void> _ensureBaseData() async {
     final tipoEstado = _firestore.collection('Tipo_Estado');
     final estados = ['Libre', 'Ocupado', 'Mantenimiento', 'Reservado'];
@@ -184,7 +184,7 @@ class _ReservasPageState extends State<ReservasPage> {
     );
   }
 
-  /// 🕓 Reprogramar reserva
+  /// Reprogramar reserva
   Future<void> _reprogramarReserva(String id, DateTime inicioAnt, DateTime finAnt) async {
     DateTime nuevoInicio = inicioAnt;
     DateTime nuevoFin = finAnt;
@@ -295,7 +295,7 @@ class _ReservasPageState extends State<ReservasPage> {
     );
   }
 
-  /// ❌ Cancelar reserva
+  /// Cancelar reserva
   Future<void> _cancelarReserva(String id, List<DocumentReference> bahiasRefs) async {
     final libreRef = _firestore.collection('Tipo_Estado').doc('Libre');
     final canceladaRef = _firestore.collection('Estado_Reserva').doc('Cancelada');
@@ -314,7 +314,7 @@ class _ReservasPageState extends State<ReservasPage> {
     ));
   }
 
-  /// 🧾 Crear reserva
+  /// Crear reserva
   Future<void> _crearReserva(
       String usuarioId, Set<String> bahiasIds, DateTime inicio, DateTime fin) async {
     final coll = _firestore.collection('Reservas');
