@@ -26,7 +26,6 @@ class _BahiasPageState extends State<BahiasPage> {
     _service.ensureDefaultData();
   }
 
-  ///  Actualiza banderas de selección
   void _updateSelectionState(List<QueryDocumentSnapshot> docs) {
     bool hasProtected = false;
     bool allMaintenance = true;
@@ -67,8 +66,6 @@ class _BahiasPageState extends State<BahiasPage> {
           ),
         ],
       ),
-
-      ///  Botón flotante con opciones
       floatingActionButton: SpeedDial(
         icon: Icons.menu,
         activeIcon: Icons.close,
@@ -122,8 +119,6 @@ class _BahiasPageState extends State<BahiasPage> {
             ),
         ],
       ),
-
-      ///  Cuerpo con tarjetas de bahías
       body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
         stream: _service.streamBahias(),
         builder: (context, snap) {
@@ -136,7 +131,6 @@ class _BahiasPageState extends State<BahiasPage> {
 
           final docs = snap.data!.docs;
 
-          /// Filtrado por tipo y estado
           final filtered = docs.where((d) {
             final estado = (d['EstadoRef'] as DocumentReference?)?.id ?? '';
             final tipo = (d['TipoRef'] as DocumentReference?)?.id ?? '';
@@ -192,7 +186,6 @@ class _BahiasPageState extends State<BahiasPage> {
     );
   }
 
-  ///  Cambiar estado a mantenimiento
   Future<void> _setToMaintenance() async {
     await _service.setEstado('Mantenimiento', _selected.toList());
     setState(() {
@@ -201,7 +194,6 @@ class _BahiasPageState extends State<BahiasPage> {
     });
   }
 
-  ///  Cambiar estado a libre
   Future<void> _setToFree() async {
     await _service.setEstado('Libre', _selected.toList());
     setState(() {
@@ -210,13 +202,11 @@ class _BahiasPageState extends State<BahiasPage> {
     });
   }
 
-  ///  Eliminar bahías seleccionadas (solo las no protegidas)
   Future<void> _confirmDeleteSelected() async {
     await _service.deleteBahias(_selected.toList());
     setState(() => _selected.clear());
   }
 
-  ///  Modal filtros
   Future<void> _mostrarModalFiltros() async {
     await showModalBottomSheet(
       backgroundColor: const Color(0xFF111511),
@@ -237,7 +227,6 @@ class _BahiasPageState extends State<BahiasPage> {
     );
   }
 
-  /// Cambiar tipo
   Future<void> _mostrarSelectorTipo() async {
     await showDialog(
       context: context,
@@ -256,7 +245,6 @@ class _BahiasPageState extends State<BahiasPage> {
     );
   }
 
-  ///  Cambiar ubicación
   Future<void> _mostrarSelectorUbicacion() async {
     await showDialog(
       context: context,

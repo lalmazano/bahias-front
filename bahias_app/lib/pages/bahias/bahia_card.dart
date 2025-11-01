@@ -41,50 +41,58 @@ class BahiaCard extends StatelessWidget {
           border: Border.all(
             color: selected
                 ? Colors.greenAccent.withOpacity(0.8)
-                : Colors.transparent,
+                : Colors.white12,
             width: 1.5,
           ),
         ),
-        padding: const EdgeInsets.all(18),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'Bahía $no',
-              style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.lightBlueAccent),
+        padding: const EdgeInsets.all(14),
+        child: Center(
+          child: SingleChildScrollView(
+            physics: const NeverScrollableScrollPhysics(),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Bahía $no',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.lightBlueAccent,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: estadoColor.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: estadoColor.withOpacity(0.45)),
+                  ),
+                  child: Text(
+                    estado,
+                    style: TextStyle(
+                      color: estadoColor,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text("Tipo: $tipo",
+                    style: const TextStyle(
+                        color: Colors.greenAccent, fontSize: 13)),
+                Text("Ubicación: $ubicacion",
+                    style: const TextStyle(
+                        color: Colors.orangeAccent, fontSize: 13)),
+                if (showLock)
+                  const Padding(
+                    padding: EdgeInsets.only(top: 6),
+                    child: Icon(Icons.lock_outline,
+                        size: 16, color: Colors.white38),
+                  ),
+              ],
             ),
-            const SizedBox(height: 10),
-            Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-              decoration: BoxDecoration(
-                color: estadoColor.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: estadoColor.withOpacity(0.45)),
-              ),
-              child: Text(
-                estado,
-                style: TextStyle(
-                    color: estadoColor, fontWeight: FontWeight.w600),
-              ),
-            ),
-            const SizedBox(height: 10),
-            Text("Tipo: $tipo",
-                style:
-                    const TextStyle(color: Colors.greenAccent, fontSize: 13)),
-            Text("Ubicación: $ubicacion",
-                style:
-                    const TextStyle(color: Colors.orangeAccent, fontSize: 13)),
-            if (showLock)
-              const Padding(
-                padding: EdgeInsets.only(top: 8),
-                child: Icon(Icons.lock_outline,
-                    size: 18, color: Colors.white38),
-              ),
-          ],
+          ),
         ),
       ),
     );
