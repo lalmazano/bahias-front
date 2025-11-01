@@ -1,13 +1,9 @@
-import 'package:bahias_app/pages/home_summary_page.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../pages/menu.dart';
 
-import '../pages/bahias_page.dart';
-import '../pages/reservas_page.dart';
-import '../pages/reportes_page.dart';
 import '../screens/configuracion_screen.dart';
 import '../screens/agregar_solicitud_page.dart';
-import '../pages/dashboard_reservas_page.dart';
 import '../services/firestore_service.dart';
 
 class AppShell extends StatefulWidget {
