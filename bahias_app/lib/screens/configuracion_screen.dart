@@ -7,111 +7,107 @@ class ConfiguracionScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context); 
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Configuraciones')),
-      backgroundColor: const Color(0xFF0B0F0B),
+      appBar: AppBar(
+        title: const Text('Configuraciones'),
+        backgroundColor: theme.appBarTheme.backgroundColor, // 👈 usa color del tema
+        foregroundColor: theme.appBarTheme.foregroundColor,
+      ),
+      backgroundColor: theme.scaffoldBackgroundColor, 
       body: ListView(
         children: [
           const SizedBox(height: 10),
 
           // --- GESTIÓN DE ROLES ---
           ListTile(
-            leading: const Icon(Icons.security, color: Colors.greenAccent),
-            title: const Text(
-              'Gestión de Roles',
-              style: TextStyle(color: Colors.white),
-            ),
+            leading: Icon(Icons.security, color: theme.colorScheme.primary),
+            title: Text('Gestión de Roles',
+                style: TextStyle(color: theme.colorScheme.onSurface)),
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const RolesScreen()),
             ),
           ),
-          const Divider(color: Colors.white24, height: 1),
+          Divider(color: theme.dividerColor, height: 1),
 
           // --- ASIGNACIÓN DE ROLES ---
           ListTile(
-            leading: const Icon(Icons.assignment_ind, color: Colors.greenAccent),
-            title: const Text(
-              'Asignar Roles',
-              style: TextStyle(color: Colors.white),
-            ),
+            leading:
+                Icon(Icons.assignment_ind, color: theme.colorScheme.primary),
+            title: Text('Asignar Roles',
+                style: TextStyle(color: theme.colorScheme.onSurface)),
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const AsignarRolesScreen()),
             ),
           ),
-          const Divider(color: Colors.white24, height: 1),
+          Divider(color: theme.dividerColor, height: 1),
 
           // --- TIPO DE BAHÍA ---
           ListTile(
-            leading: const Icon(Icons.category_outlined, color: Colors.greenAccent),
-            title: const Text(
-              'Tipo de Bahía',
-              style: TextStyle(color: Colors.white),
-            ),
+            leading:
+                Icon(Icons.category_outlined, color: theme.colorScheme.primary),
+            title: Text('Tipo de Bahía',
+                style: TextStyle(color: theme.colorScheme.onSurface)),
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const TipoBahiaScreen()),
             ),
           ),
-          const Divider(color: Colors.white24, height: 1),
+          Divider(color: theme.dividerColor, height: 1),
 
-                    // --- ESTADO DE BAHÍA ---
+          // --- ESTADO DE BAHÍA ---
           ListTile(
-            leading: const Icon(Icons.toggle_on_outlined, color: Colors.greenAccent),
-            title: const Text(
-              'Estado de Bahía',
-              style: TextStyle(color: Colors.white),
-            ),
+            leading:
+                Icon(Icons.toggle_on_outlined, color: theme.colorScheme.primary),
+            title: Text('Estado de Bahía',
+                style: TextStyle(color: theme.colorScheme.onSurface)),
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const EstadoBahiaScreen()),
             ),
           ),
-          const Divider(color: Colors.white24, height: 1),
+          Divider(color: theme.dividerColor, height: 1),
 
-                    // --- UBICACIONES ---
+          // --- UBICACIONES ---
           ListTile(
-            leading: const Icon(Icons.place_outlined, color: Colors.greenAccent),
-            title: const Text(
-              'Ubicaciones',
-              style: TextStyle(color: Colors.white),
-            ),
+            leading:
+                Icon(Icons.place_outlined, color: theme.colorScheme.primary),
+            title: Text('Ubicaciones',
+                style: TextStyle(color: theme.colorScheme.onSurface)),
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const UbicacionesScreen()),
             ),
           ),
-          const Divider(color: Colors.white24, height: 1),
+          Divider(color: theme.dividerColor, height: 1),
 
           // --- PARÁMETROS ---
           ListTile(
-            leading: const Icon(Icons.tune, color: Colors.greenAccent),
-            title: const Text(
-              'Parámetros',
-              style: TextStyle(color: Colors.white),
-            ),
+            leading: Icon(Icons.tune, color: theme.colorScheme.primary),
+            title: Text('Parámetros',
+                style: TextStyle(color: theme.colorScheme.onSurface)),
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const ParametrosScreen()),
             ),
           ),
-          const Divider(color: Colors.white24, height: 1),
+          Divider(color: theme.dividerColor, height: 1),
 
           // --- TEMAS (solo si NO está en web) ---
           if (!kIsWeb) ...[
             ListTile(
-              leading: const Icon(Icons.palette, color: Colors.greenAccent),
-              title: const Text(
-                'Temas',
-                style: TextStyle(color: Colors.white),
-              ),
+              leading: Icon(Icons.palette, color: theme.colorScheme.primary),
+              title: Text('Temas',
+                  style: TextStyle(color: theme.colorScheme.onSurface)),
               onTap: () => Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const ThemeScreen()),
               ),
             ),
-            const Divider(color: Colors.white24, height: 1),
+            Divider(color: theme.dividerColor, height: 1),
           ],
 
           const SizedBox(height: 20),

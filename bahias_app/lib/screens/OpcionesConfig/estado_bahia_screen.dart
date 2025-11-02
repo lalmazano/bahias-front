@@ -12,40 +12,47 @@ class EstadoBahiaScreen extends StatefulWidget {
 class _EstadoBahiaScreenState extends State<EstadoBahiaScreen> {
   final EstadoBahiaService _service = EstadoBahiaService();
 
-  void _mostrarDialogoEstado({String? id, String? nombreActual, String? descripcionActual}) {
+  void _mostrarDialogoEstado({
+    String? id,
+    String? nombreActual,
+    String? descripcionActual,
+  }) {
+    final theme = Theme.of(context);
     final nombreCtrl = TextEditingController(text: nombreActual ?? '');
     final descCtrl = TextEditingController(text: descripcionActual ?? '');
 
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: const Color(0xFF111511),
+        backgroundColor: theme.dialogBackgroundColor,
         title: Text(
           id == null ? "Nuevo Estado" : "Editar Estado",
-          style: const TextStyle(color: Colors.greenAccent),
+          style: TextStyle(color: theme.colorScheme.primary),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: nombreCtrl,
-              style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
+              style: TextStyle(color: theme.colorScheme.onSurface),
+              decoration: InputDecoration(
                 labelText: "Nombre del estado",
-                labelStyle: TextStyle(color: Colors.white70),
+                labelStyle:
+                    TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.7)),
                 focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.greenAccent),
+                  borderSide: BorderSide(color: theme.colorScheme.primary),
                 ),
               ),
             ),
             TextField(
               controller: descCtrl,
-              style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
+              style: TextStyle(color: theme.colorScheme.onSurface),
+              decoration: InputDecoration(
                 labelText: "Descripción del estado",
-                labelStyle: TextStyle(color: Colors.white70),
+                labelStyle:
+                    TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.7)),
                 focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.greenAccent),
+                  borderSide: BorderSide(color: theme.colorScheme.primary),
                 ),
               ),
             ),
@@ -54,10 +61,16 @@ class _EstadoBahiaScreenState extends State<EstadoBahiaScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text("Cancelar", style: TextStyle(color: Colors.white70)),
+            child: Text(
+              "Cancelar",
+              style: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.7)),
+            ),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.greenAccent),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: theme.colorScheme.primary,
+              foregroundColor: theme.colorScheme.onPrimary,
+            ),
             onPressed: () async {
               final nombre = nombreCtrl.text.trim();
               final desc = descCtrl.text.trim();
@@ -71,7 +84,7 @@ class _EstadoBahiaScreenState extends State<EstadoBahiaScreen> {
 
               if (mounted) Navigator.pop(context);
             },
-            child: const Text("Guardar", style: TextStyle(color: Colors.black)),
+            child: const Text("Guardar"),
           ),
         ],
       ),
@@ -84,18 +97,24 @@ class _EstadoBahiaScreenState extends State<EstadoBahiaScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Estados de Bahías"),
-        backgroundColor: Colors.black,
+        backgroundColor: theme.appBarTheme.backgroundColor,
+        foregroundColor: theme.appBarTheme.foregroundColor,
       ),
-      backgroundColor: const Color(0xFF0B0F0B),
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: StreamBuilder<QuerySnapshot>(
         stream: _service.obtenerEstados(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
-            return const Center(
-              child: Text("Error al cargar estados", style: TextStyle(color: Colors.redAccent)),
+            return Center(
+              child: Text(
+                "Error al cargar estados",
+                style: TextStyle(color: theme.colorScheme.error),
+              ),
             );
           }
           if (!snapshot.hasData) {
@@ -105,8 +124,11 @@ class _EstadoBahiaScreenState extends State<EstadoBahiaScreen> {
           final docs = snapshot.data!.docs;
 
           if (docs.isEmpty) {
-            return const Center(
-              child: Text("No hay estados registrados", style: TextStyle(color: Colors.white70)),
+            return Center(
+              child: Text(
+                "No hay estados registrados",
+                style: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.7)),
+              ),
             );
           }
 
@@ -120,24 +142,29 @@ class _EstadoBahiaScreenState extends State<EstadoBahiaScreen> {
               final descripcion = data['Descripcion'] ?? 'Sin descripción';
 
               return Card(
-                color: const Color(0xFF111511),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                color: theme.cardColor,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
                 child: ListTile(
                   title: Text(
                     nombre,
-                    style: const TextStyle(
-                        color: Colors.greenAccent, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      color: theme.colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   subtitle: Text(
                     "ID: $id\nDescripción: $descripcion",
-                    style: const TextStyle(color: Colors.white70),
+                    style: TextStyle(
+                        color: theme.colorScheme.onSurface.withOpacity(0.7)),
                   ),
                   isThreeLine: true,
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.edit, color: Colors.orangeAccent),
+                        icon:
+                            Icon(Icons.edit, color: theme.colorScheme.secondary),
                         onPressed: () => _mostrarDialogoEstado(
                           id: id,
                           nombreActual: nombre,
@@ -145,7 +172,8 @@ class _EstadoBahiaScreenState extends State<EstadoBahiaScreen> {
                         ),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.redAccent),
+                        icon: Icon(Icons.delete,
+                            color: theme.colorScheme.errorContainer),
                         onPressed: () => _eliminarEstado(id),
                       ),
                     ],
@@ -157,9 +185,10 @@ class _EstadoBahiaScreenState extends State<EstadoBahiaScreen> {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.greenAccent,
-        child: const Icon(Icons.add, color: Colors.black),
+        backgroundColor: theme.colorScheme.primary,
+        foregroundColor: theme.colorScheme.onPrimary,
         onPressed: () => _mostrarDialogoEstado(),
+        child: const Icon(Icons.add),
       ),
     );
   }
