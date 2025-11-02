@@ -26,7 +26,6 @@ class BahiaCard extends StatelessWidget {
     final ubicacionRef = data['UbicacionRef'] as DocumentReference?;
     final estado = estadoRef?.id ?? 'Desconocido';
     final tipo = tipoRef?.id ?? 'Sin tipo';
-    final ubicacion = ubicacionRef?.id ?? 'Sin ubicación';
     final estadoColor = service.estadoColor(estado);
 
     return GestureDetector(
@@ -39,9 +38,8 @@ class BahiaCard extends StatelessWidget {
               : const Color(0xFF111511),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: selected
-                ? Colors.greenAccent.withOpacity(0.8)
-                : Colors.white12,
+            color:
+                selected ? Colors.greenAccent.withOpacity(0.8) : Colors.white12,
             width: 1.5,
           ),
         ),
@@ -78,17 +76,43 @@ class BahiaCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 8),
-                Text("Tipo: $tipo",
-                    style: const TextStyle(
-                        color: Colors.greenAccent, fontSize: 13)),
-                Text("Ubicación: $ubicacion",
-                    style: const TextStyle(
-                        color: Colors.orangeAccent, fontSize: 13)),
+                Text(
+                  "Tipo: $tipo",
+                  style: const TextStyle(
+                    color: Colors.greenAccent,
+                    fontSize: 13,
+                  ),
+                ),
+
+                FutureBuilder<DocumentSnapshot>(
+                  future: ubicacionRef?.get(),
+                  builder: (context, snapshot) {
+                    String nombreUbicacion = 'Sin ubicación';
+
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      nombreUbicacion = 'Cargando...';
+                    } else if (snapshot.hasData && snapshot.data!.exists) {
+                      final data = snapshot.data!.data() as Map<String, dynamic>?;
+                      nombreUbicacion = data?['Nombre'] ?? 'Sin nombre';
+                    }
+
+                    return Text(
+                      "Ubicación: $nombreUbicacion",
+                      style: const TextStyle(
+                        color: Colors.orangeAccent,
+                        fontSize: 13,
+                      ),
+                    );
+                  },
+                ),
                 if (showLock)
                   const Padding(
                     padding: EdgeInsets.only(top: 6),
-                    child: Icon(Icons.lock_outline,
-                        size: 16, color: Colors.white38),
+                    child: Icon(
+                      Icons.lock_outline,
+                      size: 16,
+                      color: Colors.white38,
+                    ),
                   ),
               ],
             ),

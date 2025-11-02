@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'OpcionesConfig/windgets.dart';
-import 'package:bahias_app/screens/theme_screen.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class ConfiguracionScreen extends StatelessWidget {
   const ConfiguracionScreen({super.key});
@@ -98,19 +98,21 @@ class ConfiguracionScreen extends StatelessWidget {
           ),
           const Divider(color: Colors.white24, height: 1),
 
-          // --- TEMAS ---
-          ListTile(
-            leading: const Icon(Icons.palette, color: Colors.greenAccent),
-            title: const Text(
-              'Temas',
-              style: TextStyle(color: Colors.white),
+          // --- TEMAS (solo si NO está en web) ---
+          if (!kIsWeb) ...[
+            ListTile(
+              leading: const Icon(Icons.palette, color: Colors.greenAccent),
+              title: const Text(
+                'Temas',
+                style: TextStyle(color: Colors.white),
+              ),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ThemeScreen()),
+              ),
             ),
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const ThemeScreen()),
-            ),
-          ),
-          const Divider(color: Colors.white24, height: 1),
+            const Divider(color: Colors.white24, height: 1),
+          ],
 
           const SizedBox(height: 20),
         ],
