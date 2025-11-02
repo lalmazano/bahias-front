@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:bahias_app/theme_provider.dart'; // si estás fuera de /lib
+import 'package:bahias_app/theme/temas.dart'; // si estás fuera de /lib
 
 
 class ThemeScreen extends StatelessWidget {
