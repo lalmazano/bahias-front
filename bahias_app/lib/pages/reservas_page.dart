@@ -3,7 +3,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/services.dart';
 import './reservas/widgets.dart';
-import './reservas/formulario_reserva.dart';
 
 class ReservasPage extends StatefulWidget {
   const ReservasPage({super.key});
@@ -35,15 +34,16 @@ class _ReservasPageState extends State<ReservasPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final currentUser = _auth.currentUser;
 
     return FutureBuilder<DocumentSnapshot>(
       future: _firestore.collection('Usuarios').doc(currentUser!.uid).get(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return const Scaffold(
-            backgroundColor: Color(0xFF0B0F0B),
-            body: Center(child: CircularProgressIndicator()),
+          return Scaffold(
+            backgroundColor: theme.colorScheme.surface,
+            body: const Center(child: CircularProgressIndicator()),
           );
         }
 
@@ -51,9 +51,9 @@ class _ReservasPageState extends State<ReservasPage> {
         final rolRef = userData?['rolRef'] as DocumentReference?;
 
         if (rolRef == null) {
-          return const Scaffold(
-            backgroundColor: Color(0xFF0B0F0B),
-            body: Center(
+          return Scaffold(
+            backgroundColor: theme.colorScheme.surface,
+            body: const Center(
               child: Text(
                 'El usuario no tiene un rol asignado.',
                 style: TextStyle(color: Colors.redAccent),
@@ -66,17 +66,19 @@ class _ReservasPageState extends State<ReservasPage> {
           future: rolRef.get(),
           builder: (context, rolSnap) {
             if (!rolSnap.hasData) {
-              return const Scaffold(
-                backgroundColor: Color(0xFF0B0F0B),
-                body: Center(child: CircularProgressIndicator()),
+              return Scaffold(
+                backgroundColor: theme.colorScheme.surface,
+                body: const Center(child: CircularProgressIndicator()),
               );
             }
 
             final rolData = rolSnap.data!.data() as Map<String, dynamic>?;
-            final rolNombre = rolData?['nombre']?.toString().toLowerCase() ?? 'cliente';
+            final rolNombre =
+                rolData?['nombre']?.toString().toLowerCase() ?? 'cliente';
 
-            // 🔹 Si es admin u operador, puede ver todo
-            final puedeVerTodo = rolNombre == 'administrador' || rolNombre == 'operador';
+            // 🔹 Permisos
+            final puedeVerTodo =
+                rolNombre == 'administrador' || rolNombre == 'operador';
 
             // 🔍 Construir consulta
             Query reservasQuery = _firestore
@@ -86,28 +88,42 @@ class _ReservasPageState extends State<ReservasPage> {
             if (!puedeVerTodo) {
               reservasQuery = reservasQuery.where(
                 'UsuarioRef',
-                isEqualTo: _firestore.collection('Usuarios').doc(currentUser.uid),
+                isEqualTo: _firestore
+                    .collection('Usuarios')
+                    .doc(currentUser.uid),
               );
             }
 
             final ref = reservasQuery.snapshots();
 
             return Scaffold(
-              backgroundColor: const Color(0xFF0B0F0B),
+              backgroundColor: theme.colorScheme.surface,
               appBar: AppBar(
-                backgroundColor: Colors.black,
+                elevation: 3,
+                backgroundColor:
+                    theme.appBarTheme.backgroundColor ?? const Color(0xFF121712),
                 title: Text(
                   "Reservas (${rolNombre[0].toUpperCase()}${rolNombre.substring(1)})",
+                  style: TextStyle(
+                    color: theme.colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.3,
+                  ),
                 ),
                 actions: [
-                  IconButton(
-                    icon: const Icon(Icons.add, color: Colors.greenAccent),
-                    tooltip: 'Nueva reserva',
-                    onPressed: () => showDialog(
-                      context: context,
-                      builder: (context) => FormularioReserva(
-                        service: _service,
-                        puedeAsignarUsuario: puedeVerTodo,
+                  Tooltip(
+                    message: 'Nueva reserva',
+                    child: IconButton(
+                      icon: Icon(
+                        Icons.add_circle_outline,
+                        color: theme.colorScheme.primary,
+                      ),
+                      onPressed: () => showDialog(
+                        context: context,
+                        builder: (context) => FormularioReserva(
+                          service: _service,
+                          puedeAsignarUsuario: puedeVerTodo,
+                        ),
                       ),
                     ),
                   ),
@@ -120,21 +136,36 @@ class _ReservasPageState extends State<ReservasPage> {
                     return const Center(
                       child: Text(
                         'Error al cargar Reservas',
-                        style: TextStyle(color: Colors.white),
+                        style: TextStyle(color: Colors.redAccent),
                       ),
                     );
                   }
 
                   if (!snap.hasData) {
-                    return const Center(child: CircularProgressIndicator());
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
                   }
 
                   final docs = snap.data!.docs;
                   if (docs.isEmpty) {
-                    return const Center(
-                      child: Text(
-                        'No hay reservas registradas',
-                        style: TextStyle(color: Colors.white70, fontSize: 16),
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.event_busy,
+                              color: theme.colorScheme.primary.withOpacity(0.6),
+                              size: 50),
+                          const SizedBox(height: 12),
+                          Text(
+                            'No hay reservas registradas',
+                            style: TextStyle(
+                              color:
+                                  theme.colorScheme.onBackground.withOpacity(0.7),
+                              fontSize: 16,
+                            ),
+                          ),
+                        ],
                       ),
                     );
                   }
@@ -144,10 +175,26 @@ class _ReservasPageState extends State<ReservasPage> {
                     itemCount: docs.length,
                     itemBuilder: (_, i) {
                       final data = docs[i].data() as Map<String, dynamic>;
-                      return ReservaCard(
-                        reservaId: docs[i].id,
-                        data: data,
-                        service: _service,
+                      return AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        curve: Curves.easeInOut,
+                        margin: const EdgeInsets.only(bottom: 14),
+                        decoration: BoxDecoration(
+                          color: theme.cardColor,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: theme.shadowColor.withOpacity(0.15),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: ReservaCard(
+                          reservaId: docs[i].id,
+                          data: data,
+                          service: _service,
+                        ),
                       );
                     },
                   );

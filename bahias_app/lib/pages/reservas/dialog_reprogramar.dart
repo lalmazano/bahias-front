@@ -31,13 +31,24 @@ class _DialogReprogramarState extends State<DialogReprogramar> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return AlertDialog(
-      title: const Text("Reprogramar Reserva", style: TextStyle(color: Colors.greenAccent)),
-      backgroundColor: const Color(0xFF111511),
+      backgroundColor: theme.dialogBackgroundColor,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      title: Text(
+        "Reprogramar Reserva",
+        style: TextStyle(
+          color: theme.colorScheme.primary,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          TextButton(
+          // Fecha y hora de inicio
+          TextButton.icon(
+            icon: Icon(Icons.access_time, color: theme.colorScheme.primary),
             onPressed: () async {
               final pickedDate = await showDatePicker(
                 context: context,
@@ -63,10 +74,15 @@ class _DialogReprogramarState extends State<DialogReprogramar> {
                 }
               }
             },
-            child: const Text("Cambiar Inicio",
-                style: TextStyle(color: Colors.greenAccent)),
+            label: Text(
+              "Cambiar inicio (${nuevoInicio.toString().substring(0, 16)})",
+              style: TextStyle(color: theme.colorScheme.primary),
+            ),
           ),
-          TextButton(
+
+          // Fecha y hora de fin
+          TextButton.icon(
+            icon: Icon(Icons.timelapse, color: theme.colorScheme.primary),
             onPressed: () async {
               final pickedDate = await showDatePicker(
                 context: context,
@@ -88,27 +104,68 @@ class _DialogReprogramarState extends State<DialogReprogramar> {
                     pickedTime.minute,
                   );
                   if (newFin.isBefore(nuevoInicio)) {
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                      content: Text("La fecha de fin no puede ser menor a la de inicio"),
-                      backgroundColor: Colors.redAccent,
-                    ));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: const Text(
+                          "La fecha de fin no puede ser menor a la de inicio",
+                        ),
+                        backgroundColor: theme.colorScheme.error,
+                      ),
+                    );
                     return;
                   }
                   setState(() => nuevoFin = newFin);
                 }
               }
             },
-            child:
-                const Text("Cambiar Fin", style: TextStyle(color: Colors.greenAccent)),
+            label: Text(
+              "Cambiar fin (${nuevoFin.toString().substring(0, 16)})",
+              style: TextStyle(color: theme.colorScheme.primary),
+            ),
+          ),
+
+          const SizedBox(height: 10),
+          Divider(color: theme.dividerColor.withOpacity(0.4)),
+          const SizedBox(height: 6),
+
+          Text(
+            "Inicio anterior: ${widget.inicioAnt.toString().substring(0, 16)}",
+            style: TextStyle(
+              color: theme.colorScheme.onSurface.withOpacity(0.7),
+              fontSize: 13,
+            ),
+          ),
+          Text(
+            "Fin anterior: ${widget.finAnt.toString().substring(0, 16)}",
+            style: TextStyle(
+              color: theme.colorScheme.onSurface.withOpacity(0.7),
+              fontSize: 13,
+            ),
           ),
         ],
       ),
+      actionsPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       actions: [
         TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Cancelar", style: TextStyle(color: Colors.white70))),
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(backgroundColor: Colors.greenAccent),
+          onPressed: () => Navigator.pop(context),
+          child: Text(
+            "Cancelar",
+            style: TextStyle(
+              color: theme.colorScheme.onSurface.withOpacity(0.7),
+            ),
+          ),
+        ),
+        ElevatedButton.icon(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: theme.colorScheme.primary,
+            foregroundColor: theme.colorScheme.onPrimary,
+            padding:
+                const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+          icon: const Icon(Icons.save),
+          label: const Text("Guardar"),
           onPressed: () async {
             await _firestore.collection('Reservas').doc(widget.reservaId).update({
               'FechaInicioAnterior': Timestamp.fromDate(widget.inicioAnt),
@@ -118,13 +175,17 @@ class _DialogReprogramarState extends State<DialogReprogramar> {
               'Reprogramada': true,
               'FechaReprogramacion': Timestamp.now(),
             });
-            Navigator.pop(context);
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-              content: Text("Reserva reprogramada correctamente"),
-              backgroundColor: Colors.orangeAccent,
-            ));
+
+            if (context.mounted) {
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: const Text("Reserva reprogramada correctamente"),
+                  backgroundColor: Colors.orangeAccent,
+                ),
+              );
+            }
           },
-          child: const Text("Guardar", style: TextStyle(color: Colors.black)),
         ),
       ],
     );

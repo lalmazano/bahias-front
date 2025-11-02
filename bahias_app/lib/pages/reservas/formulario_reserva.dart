@@ -30,9 +30,8 @@ class _FormularioReservaState extends State<FormularioReserva> {
   List<QueryDocumentSnapshot<Map<String, dynamic>>> bahiasDisponibles = [];
   List<QueryDocumentSnapshot<Map<String, dynamic>>> usuarios = [];
 
-  /// 🔍 Obtiene bahías disponibles según rango de fechas
-  Future<List<QueryDocumentSnapshot<Map<String, dynamic>>>> _obtenerBahiasDisponibles(
-      DateTime inicio, DateTime fin) async {
+  Future<List<QueryDocumentSnapshot<Map<String, dynamic>>>>
+      _obtenerBahiasDisponibles(DateTime inicio, DateTime fin) async {
     final reservasActivas = await _firestore
         .collection('Reservas')
         .where('EstadoReservaRef', whereIn: [
@@ -66,12 +65,11 @@ class _FormularioReservaState extends State<FormularioReserva> {
         .toList();
   }
 
-  /// 🔧 Carga inicial del usuario actual y lista si tiene permiso
   Future<void> _initUser() async {
     final currentUser = _auth.currentUser;
     if (currentUser == null) return;
 
-    usuarioSel = currentUser.uid; // por defecto su propio usuario
+    usuarioSel = currentUser.uid;
 
     if (widget.puedeAsignarUsuario) {
       setState(() => cargandoUsuarios = true);
@@ -87,13 +85,17 @@ class _FormularioReservaState extends State<FormularioReserva> {
     _initUser();
   }
 
-  /// 🔥 Crea la reserva
   Future<void> _guardarReserva() async {
-    if (usuarioSel == null || inicio == null || fin == null || seleccionadas.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text("Completa todos los campos antes de continuar."),
-        backgroundColor: Colors.redAccent,
-      ));
+    if (usuarioSel == null ||
+        inicio == null ||
+        fin == null ||
+        seleccionadas.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text("Completa todos los campos antes de continuar."),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
       return;
     }
 
@@ -108,7 +110,6 @@ class _FormularioReservaState extends State<FormularioReserva> {
     if (mounted) Navigator.pop(context);
   }
 
-  /// 🔄 Actualiza la lista de bahías según fechas seleccionadas
   Future<void> _actualizarBahiasDisponibles() async {
     if (inicio == null || fin == null) return;
     setState(() => cargandoBahias = true);
@@ -118,45 +119,65 @@ class _FormularioReservaState extends State<FormularioReserva> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Dialog(
-      backgroundColor: const Color(0xFF111511),
+      backgroundColor: theme.dialogBackgroundColor,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
       child: SingleChildScrollView(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 340),
+          constraints: const BoxConstraints(maxWidth: 360),
           child: Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(18.0),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
+                Text(
                   "Nueva Reserva",
                   style: TextStyle(
-                    color: Colors.greenAccent,
+                    color: theme.colorScheme.primary,
                     fontWeight: FontWeight.bold,
                     fontSize: 20,
                   ),
                 ),
                 const SizedBox(height: 16),
 
-                // 🧑‍💻 Selección de usuario (solo admin u operador)
+                // 🧑‍💻 Usuario
                 if (widget.puedeAsignarUsuario)
                   cargandoUsuarios
-                      ? const CircularProgressIndicator(color: Colors.greenAccent)
+                      ? CircularProgressIndicator(
+                          color: theme.colorScheme.primary)
                       : DropdownButtonFormField<String>(
                           value: usuarioSel,
-                          dropdownColor: const Color(0xFF222222),
-                          decoration: const InputDecoration(
+                          dropdownColor: theme.cardColor,
+                          decoration: InputDecoration(
                             labelText: "Asignar a usuario",
-                            labelStyle: TextStyle(color: Colors.white70),
+                            labelStyle: TextStyle(
+                              color:
+                                  theme.colorScheme.onSurface.withOpacity(0.7),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: theme.dividerColor.withOpacity(0.5),
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: theme.colorScheme.primary,
+                              ),
+                            ),
                           ),
                           items: usuarios.map((u) {
                             return DropdownMenuItem<String>(
                               value: u.id,
                               child: Text(
                                 u['nombre'] ?? u['correo'] ?? 'Sin nombre',
-                                style: const TextStyle(color: Colors.white),
+                                style: TextStyle(
+                                  color: theme.colorScheme.onSurface,
+                                ),
                               ),
                             );
                           }).toList(),
@@ -165,13 +186,16 @@ class _FormularioReservaState extends State<FormularioReserva> {
                 else
                   Text(
                     "Usuario: ${_auth.currentUser?.email ?? 'Desconocido'}",
-                    style: const TextStyle(color: Colors.white70),
+                    style: TextStyle(
+                      color: theme.colorScheme.onSurface.withOpacity(0.8),
+                    ),
                   ),
 
                 const SizedBox(height: 20),
 
                 // 📅 Fecha/hora inicio
-                TextButton(
+                TextButton.icon(
+                  icon: const Icon(Icons.access_time),
                   onPressed: () async {
                     final pickedDate = await showDatePicker(
                       context: context,
@@ -198,21 +222,24 @@ class _FormularioReservaState extends State<FormularioReserva> {
                       }
                     }
                   },
-                  child: Text(
+                  label: Text(
                     inicio == null
                         ? "Seleccionar fecha/hora inicio"
                         : "Inicio: ${inicio.toString().substring(0, 16)}",
-                    style: const TextStyle(color: Colors.greenAccent),
+                    style: TextStyle(color: theme.colorScheme.primary),
                   ),
                 ),
 
                 // 📅 Fecha/hora fin
-                TextButton(
+                TextButton.icon(
+                  icon: const Icon(Icons.timelapse_outlined),
                   onPressed: () async {
                     if (inicio == null) {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                        content: Text("Primero selecciona la fecha de inicio."),
-                      ));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("Primero selecciona la fecha de inicio."),
+                        ),
+                      );
                       return;
                     }
                     final pickedDate = await showDatePicker(
@@ -235,9 +262,12 @@ class _FormularioReservaState extends State<FormularioReserva> {
                           pickedTime.minute,
                         );
                         if (newFin.isBefore(inicio!)) {
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                            content: Text("La fecha de fin no puede ser menor a la de inicio."),
-                          ));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                  "La fecha de fin no puede ser menor a la de inicio."),
+                            ),
+                          );
                           return;
                         }
                         setState(() => fin = newFin);
@@ -245,35 +275,45 @@ class _FormularioReservaState extends State<FormularioReserva> {
                       }
                     }
                   },
-                  child: Text(
+                  label: Text(
                     fin == null
                         ? "Seleccionar fecha/hora fin"
                         : "Fin: ${fin.toString().substring(0, 16)}",
-                    style: const TextStyle(color: Colors.greenAccent),
+                    style: TextStyle(color: theme.colorScheme.primary),
                   ),
                 ),
 
                 const SizedBox(height: 16),
-                const Text(
+                Text(
                   "Seleccionar Bahías disponibles",
-                  style: TextStyle(color: Colors.white70, fontSize: 14),
+                  style: TextStyle(
+                    color: theme.colorScheme.onSurface.withOpacity(0.8),
+                    fontSize: 14,
+                  ),
                 ),
                 const SizedBox(height: 8),
 
                 if (cargandoBahias)
-                  const Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: CircularProgressIndicator(color: Colors.greenAccent),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: CircularProgressIndicator(
+                        color: theme.colorScheme.primary),
                   )
                 else if (inicio == null || fin == null)
-                  const Text(
+                  Text(
                     "Selecciona fecha y hora para ver bahías.",
-                    style: TextStyle(color: Colors.white54, fontSize: 12),
+                    style: TextStyle(
+                      color: theme.colorScheme.onSurface.withOpacity(0.6),
+                      fontSize: 12,
+                    ),
                   )
                 else if (bahiasDisponibles.isEmpty)
-                  const Text(
+                  Text(
                     "No hay bahías disponibles en este rango.",
-                    style: TextStyle(color: Colors.redAccent, fontSize: 12),
+                    style: TextStyle(
+                      color: theme.colorScheme.error,
+                      fontSize: 12,
+                    ),
                   )
                 else
                   Wrap(
@@ -285,15 +325,19 @@ class _FormularioReservaState extends State<FormularioReserva> {
                         label: Text(
                           "Bahía ${b['No_Bahia']}",
                           style: TextStyle(
-                            color: selected ? Colors.black : Colors.white,
+                            color: selected
+                                ? theme.colorScheme.onPrimary
+                                : theme.colorScheme.onSurface,
                           ),
                         ),
                         selected: selected,
-                        backgroundColor: Colors.grey.shade800,
-                        selectedColor: Colors.greenAccent,
+                        backgroundColor: theme.cardColor,
+                        selectedColor: theme.colorScheme.primary,
                         onSelected: (val) {
                           setState(() {
-                            val ? seleccionadas.add(b.id) : seleccionadas.remove(b.id);
+                            val
+                                ? seleccionadas.add(b.id)
+                                : seleccionadas.remove(b.id);
                           });
                         },
                       );
@@ -306,18 +350,26 @@ class _FormularioReservaState extends State<FormularioReserva> {
                   children: [
                     TextButton(
                       onPressed: () => Navigator.pop(context),
-                      child: const Text("Cancelar",
-                          style: TextStyle(color: Colors.white70)),
+                      child: Text(
+                        "Cancelar",
+                        style: TextStyle(
+                          color: theme.colorScheme.onSurface.withOpacity(0.8),
+                        ),
+                      ),
                     ),
-                    ElevatedButton(
+                    ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.greenAccent,
+                        backgroundColor: theme.colorScheme.primary,
+                        foregroundColor: theme.colorScheme.onPrimary,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 20, vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
+                      icon: const Icon(Icons.save),
                       onPressed: _guardarReserva,
-                      child: const Text(
-                        "Guardar",
-                        style: TextStyle(color: Colors.black),
-                      ),
+                      label: const Text("Guardar"),
                     ),
                   ],
                 ),
