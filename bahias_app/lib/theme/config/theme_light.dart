@@ -4,33 +4,43 @@ final lightTheme = ThemeData(
   useMaterial3: true,
   brightness: Brightness.light,
 
-  //  Fondo general: casi blanco, con un toque gris
+  // 🎨 Fondo general
   scaffoldBackgroundColor: const Color(0xFFF6F7F6),
 
   colorScheme: const ColorScheme.light(
-    primary: Color(0xFF2ECC71),   // verde institucional
-    secondary: Color(0xFFFFC107), // amarillo
-    tertiary: Color(0xFF42A5F5),  // azul
-    surface: Color(0xFFEDEFEF),   // gris claro para tarjetas
+    primary: Color(0xFF28B463),   // verde más profundo (antes 2ECC71)
+    secondary: Color(0xFFF1C40F), // amarillo cálido
+    tertiary: Color(0xFF2980B9),  // azul más oscuro
+    surface: Color(0xFFEAEDED),
     background: Color(0xFFF6F7F6),
+    onSurface: Color(0xFF2C3E50), // texto oscuro más legible
   ),
 
-  cardColor: const Color(0xFFFFFFFF), // blanco suave
+  cardColor: Colors.white,
+  dividerColor: Colors.grey,
+
   appBarTheme: const AppBarTheme(
     backgroundColor: Color(0xFFEDEFEF),
     foregroundColor: Colors.black87,
-    elevation: 0.4,
+    elevation: 0.8,
   ),
 
   listTileTheme: const ListTileThemeData(
     textColor: Colors.black87,
-    iconColor: Color(0xFF2ECC71),
+    iconColor: Color(0xFF28B463),
   ),
 
   elevatedButtonTheme: ElevatedButtonThemeData(
     style: ElevatedButton.styleFrom(
-      backgroundColor: const Color(0xFF2ECC71),
+      backgroundColor: Color(0xFF28B463),
       foregroundColor: Colors.white,
     ),
   ),
+
+  floatingActionButtonTheme: const FloatingActionButtonThemeData(
+    backgroundColor: Color(0xFF28B463),
+    foregroundColor: Colors.white,
+  ),
+
+  dialogBackgroundColor: Colors.white,
 );

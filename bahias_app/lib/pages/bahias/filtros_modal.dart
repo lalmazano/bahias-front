@@ -29,21 +29,26 @@ class _FiltrosModalState extends State<FiltrosModal> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Padding(
       padding: const EdgeInsets.all(20),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text(
+          Text(
             "Filtrar Bahías",
             style: TextStyle(
-                color: Colors.greenAccent,
-                fontSize: 18,
-                fontWeight: FontWeight.bold),
+              color: theme.colorScheme.primary,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-          const Divider(color: Colors.white24),
+          Divider(color: theme.dividerColor.withOpacity(0.3)),
           const SizedBox(height: 10),
+
           _buildDropdown(
+            context: context,
             title: "Estado",
             value: _estadoTemp,
             options: const [
@@ -55,8 +60,11 @@ class _FiltrosModalState extends State<FiltrosModal> {
             ],
             onChanged: (v) => setState(() => _estadoTemp = v!),
           ),
+
           const SizedBox(height: 10),
+
           _buildDropdown(
+            context: context,
             title: "Tipo",
             value: _tipoTemp,
             options: const [
@@ -68,11 +76,14 @@ class _FiltrosModalState extends State<FiltrosModal> {
             ],
             onChanged: (v) => setState(() => _tipoTemp = v!),
           ),
+
           const SizedBox(height: 25),
+
           ElevatedButton.icon(
-            icon: const Icon(Icons.check, color: Colors.black),
+            icon: Icon(Icons.check, color: theme.colorScheme.onPrimary),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.greenAccent,
+              backgroundColor: theme.colorScheme.primary,
+              foregroundColor: theme.colorScheme.onPrimary,
               padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
@@ -82,44 +93,51 @@ class _FiltrosModalState extends State<FiltrosModal> {
               widget.onApply(_estadoTemp, _tipoTemp);
               Navigator.pop(context);
             },
-            label: const Text("Aplicar filtros",
-                style: TextStyle(color: Colors.black)),
+            label: const Text("Aplicar filtros"),
           ),
-          const SizedBox(height: 10),
+
+          const SizedBox(height: 40),
         ],
       ),
     );
   }
 
   Widget _buildDropdown({
+    required BuildContext context,
     required String title,
     required String value,
     required List<String> options,
     required ValueChanged<String?> onChanged,
   }) {
+    final theme = Theme.of(context);
+
     return Row(
       children: [
         Expanded(
           child: DropdownButtonFormField<String>(
             value: value,
-            dropdownColor: const Color(0xFF111511),
+            dropdownColor: theme.dialogBackgroundColor,
             decoration: InputDecoration(
               labelText: title,
-              labelStyle: const TextStyle(color: Colors.white70),
+              labelStyle: TextStyle(
+                color: theme.colorScheme.onSurface.withOpacity(0.7),
+              ),
               enabledBorder: OutlineInputBorder(
-                borderSide: const BorderSide(color: Colors.greenAccent),
+                borderSide: BorderSide(color: theme.colorScheme.primary),
                 borderRadius: BorderRadius.circular(12),
               ),
               focusedBorder: OutlineInputBorder(
-                borderSide: const BorderSide(color: Colors.greenAccent),
+                borderSide: BorderSide(color: theme.colorScheme.primary),
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
             items: options
                 .map((e) => DropdownMenuItem(
                       value: e,
-                      child:
-                          Text(e, style: const TextStyle(color: Colors.white)),
+                      child: Text(
+                        e,
+                        style: TextStyle(color: theme.colorScheme.onSurface),
+                      ),
                     ))
                 .toList(),
             onChanged: onChanged,

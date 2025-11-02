@@ -32,31 +32,42 @@ class _SelectorTipoState extends State<SelectorTipo> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return AlertDialog(
-      backgroundColor: const Color(0xFF111511),
+      backgroundColor: theme.dialogBackgroundColor,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      title: const Text(
+      title: Text(
         "Cambiar tipo de Bahía",
         style: TextStyle(
-            color: Colors.greenAccent,
-            fontSize: 18,
-            fontWeight: FontWeight.bold),
+          color: theme.colorScheme.primary,
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+        ),
       ),
       content: _tipos.isEmpty
-          ? const Center(
-              child: CircularProgressIndicator(color: Colors.greenAccent))
+          ? Center(
+              child: CircularProgressIndicator(
+                color: theme.colorScheme.primary,
+              ),
+            )
           : DropdownButton<String>(
               value: _tipoSel,
-              dropdownColor: const Color(0xFF111511),
+              dropdownColor: theme.dialogBackgroundColor,
               isExpanded: true,
-              iconEnabledColor: Colors.greenAccent,
-              underline: Container(height: 1, color: Colors.greenAccent),
+              iconEnabledColor: theme.colorScheme.primary,
+              underline:
+                  Container(height: 1, color: theme.colorScheme.primary),
               items: _tipos
                   .map(
                     (e) => DropdownMenuItem(
                       value: e,
-                      child: Text(e,
-                          style: const TextStyle(color: Colors.white)),
+                      child: Text(
+                        e,
+                        style: TextStyle(
+                          color: theme.colorScheme.onSurface,
+                        ),
+                      ),
                     ),
                   )
                   .toList(),
@@ -65,18 +76,25 @@ class _SelectorTipoState extends State<SelectorTipo> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text("Cancelar", style: TextStyle(color: Colors.white70)),
+          child: Text(
+            "Cancelar",
+            style: TextStyle(
+              color: theme.colorScheme.onSurface.withOpacity(0.7),
+            ),
+          ),
         ),
         ElevatedButton(
-          style:
-              ElevatedButton.styleFrom(backgroundColor: Colors.greenAccent),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: theme.colorScheme.primary,
+            foregroundColor: theme.colorScheme.onPrimary,
+          ),
           onPressed: _tipoSel == null
               ? null
               : () {
                   widget.onSelected(_tipoSel!);
                   Navigator.pop(context);
                 },
-          child: const Text("Aplicar", style: TextStyle(color: Colors.black)),
+          child: const Text("Aplicar"),
         ),
       ],
     );

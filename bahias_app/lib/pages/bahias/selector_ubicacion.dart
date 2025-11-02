@@ -40,33 +40,40 @@ class _SelectorUbicacionState extends State<SelectorUbicacion> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return AlertDialog(
-      backgroundColor: const Color(0xFF111511),
+      backgroundColor: theme.dialogBackgroundColor,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      title: const Text(
+      title: Text(
         "Cambiar ubicación de Bahía",
         style: TextStyle(
-          color: Colors.greenAccent,
+          color: theme.colorScheme.primary,
           fontSize: 18,
           fontWeight: FontWeight.bold,
         ),
       ),
       content: _ubicaciones.isEmpty
-          ? const Center(
-              child: CircularProgressIndicator(color: Colors.greenAccent),
+          ? Center(
+              child: CircularProgressIndicator(
+                color: theme.colorScheme.primary,
+              ),
             )
           : DropdownButton<String>(
               value: _ubicacionSel,
-              dropdownColor: const Color(0xFF111511),
+              dropdownColor: theme.dialogBackgroundColor,
               isExpanded: true,
-              iconEnabledColor: Colors.greenAccent,
-              underline: Container(height: 1, color: Colors.greenAccent),
+              iconEnabledColor: theme.colorScheme.primary,
+              underline: Container(
+                height: 1,
+                color: theme.colorScheme.primary,
+              ),
               items: _ubicaciones.map((e) {
                 return DropdownMenuItem(
                   value: e['id'],
                   child: Text(
                     e['nombre']!,
-                    style: const TextStyle(color: Colors.white),
+                    style: TextStyle(color: theme.colorScheme.onSurface),
                   ),
                 );
               }).toList(),
@@ -75,11 +82,17 @@ class _SelectorUbicacionState extends State<SelectorUbicacion> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text("Cancelar", style: TextStyle(color: Colors.white70)),
+          child: Text(
+            "Cancelar",
+            style: TextStyle(
+              color: theme.colorScheme.onSurface.withOpacity(0.7),
+            ),
+          ),
         ),
         ElevatedButton(
           style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.greenAccent,
+            backgroundColor: theme.colorScheme.primary,
+            foregroundColor: theme.colorScheme.onPrimary,
           ),
           onPressed: _ubicacionSel == null
               ? null
@@ -87,7 +100,7 @@ class _SelectorUbicacionState extends State<SelectorUbicacion> {
                   widget.onSelected(_ubicacionSel!); // devuelve el id real
                   Navigator.pop(context);
                 },
-          child: const Text("Aplicar", style: TextStyle(color: Colors.black)),
+          child: const Text("Aplicar"),
         ),
       ],
     );

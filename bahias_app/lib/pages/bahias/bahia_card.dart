@@ -20,6 +20,7 @@ class BahiaCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final no = data['No_Bahia'] ?? 0;
     final estadoRef = data['EstadoRef'] as DocumentReference?;
     final tipoRef = data['TipoRef'] as DocumentReference?;
@@ -31,17 +32,35 @@ class BahiaCard extends StatelessWidget {
     return GestureDetector(
       onLongPress: onLongPress,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeInOut,
         decoration: BoxDecoration(
           color: selected
-              ? Colors.greenAccent.withOpacity(0.1)
-              : const Color(0xFF111511),
+              ? theme.colorScheme.primary.withOpacity(0.12)
+              : theme.cardColor,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color:
-                selected ? Colors.greenAccent.withOpacity(0.8) : Colors.white12,
-            width: 1.5,
+            color: selected
+                ? theme.colorScheme.primary.withOpacity(0.9)
+                : theme.dividerColor.withOpacity(0.25),
+            width: 1.3,
           ),
+          boxShadow: [
+            // 🌗 Sombra adaptativa según tema
+            BoxShadow(
+              color: theme.brightness == Brightness.light
+                  ? Colors.black.withOpacity(0.05)
+                  : Colors.black.withOpacity(0.4),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+            if (selected)
+              BoxShadow(
+                color: theme.colorScheme.primary.withOpacity(0.25),
+                blurRadius: 12,
+                spreadRadius: 1.5,
+              ),
+          ],
         ),
         padding: const EdgeInsets.all(14),
         child: Center(
@@ -52,10 +71,10 @@ class BahiaCard extends StatelessWidget {
               children: [
                 Text(
                   'Bahía $no',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Colors.lightBlueAccent,
+                    color: theme.colorScheme.tertiary, // azul institucional
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -65,7 +84,7 @@ class BahiaCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: estadoColor.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: estadoColor.withOpacity(0.45)),
+                    border: Border.all(color: estadoColor.withOpacity(0.4)),
                   ),
                   child: Text(
                     estado,
@@ -78,40 +97,38 @@ class BahiaCard extends StatelessWidget {
                 const SizedBox(height: 8),
                 Text(
                   "Tipo: $tipo",
-                  style: const TextStyle(
-                    color: Colors.greenAccent,
+                  style: TextStyle(
+                    color: theme.colorScheme.primary,
                     fontSize: 13,
                   ),
                 ),
-
                 FutureBuilder<DocumentSnapshot>(
                   future: ubicacionRef?.get(),
                   builder: (context, snapshot) {
                     String nombreUbicacion = 'Sin ubicación';
 
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      nombreUbicacion = 'Cargando...';
-                    } else if (snapshot.hasData && snapshot.data!.exists) {
-                      final data = snapshot.data!.data() as Map<String, dynamic>?;
+                    if (snapshot.hasData && snapshot.data!.exists) {
+                      final data =
+                          snapshot.data!.data() as Map<String, dynamic>?;
                       nombreUbicacion = data?['Nombre'] ?? 'Sin nombre';
                     }
 
                     return Text(
                       "Ubicación: $nombreUbicacion",
-                      style: const TextStyle(
-                        color: Colors.orangeAccent,
+                      style: TextStyle(
+                        color: theme.colorScheme.secondary,
                         fontSize: 13,
                       ),
                     );
                   },
                 ),
                 if (showLock)
-                  const Padding(
-                    padding: EdgeInsets.only(top: 6),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 6),
                     child: Icon(
                       Icons.lock_outline,
                       size: 16,
-                      color: Colors.white38,
+                      color: theme.colorScheme.onSurface.withOpacity(0.5),
                     ),
                   ),
               ],
