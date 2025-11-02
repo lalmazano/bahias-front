@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../services/services.dart';
 
 class EstadoBahiaScreen extends StatefulWidget {
   const EstadoBahiaScreen({super.key});
@@ -9,10 +10,11 @@ class EstadoBahiaScreen extends StatefulWidget {
 }
 
 class _EstadoBahiaScreenState extends State<EstadoBahiaScreen> {
-  final _estadoRef = FirebaseFirestore.instance.collection('Tipo_Estado');
+  final EstadoBahiaService _service = EstadoBahiaService();
 
-  void _mostrarDialogoEstado({String? id, String? descripcionActual}) {
-    final controller = TextEditingController(text: descripcionActual ?? '');
+  void _mostrarDialogoEstado({String? id, String? nombreActual, String? descripcionActual}) {
+    final nombreCtrl = TextEditingController(text: nombreActual ?? '');
+    final descCtrl = TextEditingController(text: descripcionActual ?? '');
 
     showDialog(
       context: context,
@@ -22,16 +24,32 @@ class _EstadoBahiaScreenState extends State<EstadoBahiaScreen> {
           id == null ? "Nuevo Estado" : "Editar Estado",
           style: const TextStyle(color: Colors.greenAccent),
         ),
-        content: TextField(
-          controller: controller,
-          style: const TextStyle(color: Colors.white),
-          decoration: const InputDecoration(
-            labelText: "Descripción del estado",
-            labelStyle: TextStyle(color: Colors.white70),
-            focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: Colors.greenAccent),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nombreCtrl,
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
+                labelText: "Nombre del estado",
+                labelStyle: TextStyle(color: Colors.white70),
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Colors.greenAccent),
+                ),
+              ),
             ),
-          ),
+            TextField(
+              controller: descCtrl,
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
+                labelText: "Descripción del estado",
+                labelStyle: TextStyle(color: Colors.white70),
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Colors.greenAccent),
+                ),
+              ),
+            ),
+          ],
         ),
         actions: [
           TextButton(
@@ -41,13 +59,14 @@ class _EstadoBahiaScreenState extends State<EstadoBahiaScreen> {
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.greenAccent),
             onPressed: () async {
-              final nuevaDesc = controller.text.trim();
-              if (nuevaDesc.isEmpty) return;
+              final nombre = nombreCtrl.text.trim();
+              final desc = descCtrl.text.trim();
+              if (nombre.isEmpty || desc.isEmpty) return;
 
               if (id == null) {
-                await _estadoRef.add({'Descripcion': nuevaDesc});
+                await _service.agregarEstado(nombre, desc);
               } else {
-                await _estadoRef.doc(id).update({'Descripcion': nuevaDesc});
+                await _service.editarEstado(id, nombre, desc);
               }
 
               if (mounted) Navigator.pop(context);
@@ -60,19 +79,19 @@ class _EstadoBahiaScreenState extends State<EstadoBahiaScreen> {
   }
 
   Future<void> _eliminarEstado(String id) async {
-    await _estadoRef.doc(id).delete();
+    await _service.eliminarEstado(id);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Estado de Bahías"),
+        title: const Text("Estados de Bahías"),
         backgroundColor: Colors.black,
       ),
       backgroundColor: const Color(0xFF0B0F0B),
       body: StreamBuilder<QuerySnapshot>(
-        stream: _estadoRef.snapshots(),
+        stream: _service.obtenerEstados(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return const Center(
@@ -96,24 +115,38 @@ class _EstadoBahiaScreenState extends State<EstadoBahiaScreen> {
             itemCount: docs.length,
             itemBuilder: (context, i) {
               final data = docs[i].data() as Map<String, dynamic>;
+              final id = docs[i].id;
+              final nombre = data['nombre'] ?? 'Sin nombre';
               final descripcion = data['Descripcion'] ?? 'Sin descripción';
-              final docId = docs[i].id;
 
               return Card(
                 color: const Color(0xFF111511),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 child: ListTile(
-                  title: Text(descripcion, style: const TextStyle(color: Colors.white)),
+                  title: Text(
+                    nombre,
+                    style: const TextStyle(
+                        color: Colors.greenAccent, fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: Text(
+                    "ID: $id\nDescripción: $descripcion",
+                    style: const TextStyle(color: Colors.white70),
+                  ),
+                  isThreeLine: true,
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
                         icon: const Icon(Icons.edit, color: Colors.orangeAccent),
-                        onPressed: () => _mostrarDialogoEstado(id: docId, descripcionActual: descripcion),
+                        onPressed: () => _mostrarDialogoEstado(
+                          id: id,
+                          nombreActual: nombre,
+                          descripcionActual: descripcion,
+                        ),
                       ),
                       IconButton(
                         icon: const Icon(Icons.delete, color: Colors.redAccent),
-                        onPressed: () => _eliminarEstado(docId),
+                        onPressed: () => _eliminarEstado(id),
                       ),
                     ],
                   ),

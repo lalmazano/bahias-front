@@ -1,11 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:bahias_app/screens/roles_screen.dart';
-import 'package:bahias_app/screens/asignacion_roles_screen.dart';
+import 'OpcionesConfig/windgets.dart';
 import 'package:bahias_app/screens/theme_screen.dart';
-import 'package:bahias_app/screens/tipo_bahia_screen.dart';
-import 'package:bahias_app/screens/estado_bahia_screen.dart';
-import 'package:bahias_app/screens/parametros_screen.dart';
-import 'package:bahias_app/screens/ubicaciones_screen.dart';
 
 class ConfiguracionScreen extends StatelessWidget {
   const ConfiguracionScreen({super.key});
@@ -47,20 +42,6 @@ class ConfiguracionScreen extends StatelessWidget {
           ),
           const Divider(color: Colors.white24, height: 1),
 
-          // --- TEMAS ---
-          ListTile(
-            leading: const Icon(Icons.palette, color: Colors.greenAccent),
-            title: const Text(
-              'Temas',
-              style: TextStyle(color: Colors.white),
-            ),
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const ThemeScreen()),
-            ),
-          ),
-          const Divider(color: Colors.white24, height: 1),
-
           // --- TIPO DE BAHÍA ---
           ListTile(
             leading: const Icon(Icons.category_outlined, color: Colors.greenAccent),
@@ -75,7 +56,7 @@ class ConfiguracionScreen extends StatelessWidget {
           ),
           const Divider(color: Colors.white24, height: 1),
 
-          // --- ESTADO DE BAHÍA ---
+                    // --- ESTADO DE BAHÍA ---
           ListTile(
             leading: const Icon(Icons.toggle_on_outlined, color: Colors.greenAccent),
             title: const Text(
@@ -85,6 +66,20 @@ class ConfiguracionScreen extends StatelessWidget {
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const EstadoBahiaScreen()),
+            ),
+          ),
+          const Divider(color: Colors.white24, height: 1),
+
+                    // --- UBICACIONES ---
+          ListTile(
+            leading: const Icon(Icons.place_outlined, color: Colors.greenAccent),
+            title: const Text(
+              'Ubicaciones',
+              style: TextStyle(color: Colors.white),
+            ),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const UbicacionesScreen()),
             ),
           ),
           const Divider(color: Colors.white24, height: 1),
@@ -103,16 +98,16 @@ class ConfiguracionScreen extends StatelessWidget {
           ),
           const Divider(color: Colors.white24, height: 1),
 
-          // --- UBICACIONES ---
+          // --- TEMAS ---
           ListTile(
-            leading: const Icon(Icons.place_outlined, color: Colors.greenAccent),
+            leading: const Icon(Icons.palette, color: Colors.greenAccent),
             title: const Text(
-              'Ubicaciones',
+              'Temas',
               style: TextStyle(color: Colors.white),
             ),
             onTap: () => Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => const UbicacionesScreen()),
+              MaterialPageRoute(builder: (_) => const ThemeScreen()),
             ),
           ),
           const Divider(color: Colors.white24, height: 1),

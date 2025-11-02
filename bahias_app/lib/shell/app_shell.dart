@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../pages/menu.dart';
-
 import '../screens/configuracion_screen.dart';
-import '../screens/agregar_solicitud_page.dart';
-import '../services/firestore_service.dart';
+import '../services/services.dart';
 
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
@@ -28,7 +26,6 @@ class _AppShellState extends State<AppShell> {
     _NavItem('Bahías', Icons.directions_boat_outlined, permiso: 'visualizar_bahias'),
     _NavItem('Reservas', Icons.event_available_outlined, permiso: 'agendar_reservas'),
     _NavItem('Reportes', Icons.bar_chart_rounded, permiso: 'generar_reportes'),
-    _NavItem('Agregar Solicitudes', Icons.add_circle_outline, permiso: 'crear_solicitud'),
     _NavItem('Configuraciones', Icons.settings_outlined, permiso: 'modificar_configuraciones'),
   ];
 
@@ -76,8 +73,6 @@ class _AppShellState extends State<AppShell> {
         return const ReservasPage();
       case 'Reportes':
         return const ReportesPage();
-      case 'Agregar Solicitudes':
-        return const AgregarSolicitudPage();
       case 'Configuraciones':
         return const ConfiguracionScreen();
       case 'Estadisticas':

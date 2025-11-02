@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../services/parametros_service.dart';
+import '../../services/services.dart';
 
 class ParametrosScreen extends StatefulWidget {
   const ParametrosScreen({super.key});
@@ -385,12 +385,14 @@ class _ParametroFormState extends State<_ParametroForm> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 60),
               ],
             ),
           ),
         ],
+        
       ),
+      
     );
   }
 }

@@ -1,44 +1,53 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class UbicacionesService {
-  final _db = FirebaseFirestore.instance;
-  final _collection = 'Ubicacion';
+  final _ref = FirebaseFirestore.instance.collection('Ubicacion');
 
+  /// 📡 Stream en tiempo real
   Stream<QuerySnapshot<Map<String, dynamic>>> streamUbicaciones() {
-    // Si tienes el campo Nombre, ordena por Nombre; si no, por id
-    return _db.collection(_collection)
-      .orderBy('Nombre', descending: false)
-      .snapshots();
+    return _ref.orderBy(FieldPath.documentId).snapshots();
   }
 
+  /// ➕ Crear nueva ubicación con ID incremental (Ubicacion 1, 2, 3...)
   Future<void> create({
-    required String id,
     required String nombre,
-    String? descripcion,
+    required String descripcion,
   }) async {
-    await _db.collection(_collection).doc(id).set({
-      'Nombre': nombre,
-      if (descripcion != null && descripcion.trim().isNotEmpty)
-        'Descripcion': descripcion,
-      'createdAt': FieldValue.serverTimestamp(),
-      'updatedAt': FieldValue.serverTimestamp(),
+    if (nombre.trim().isEmpty || descripcion.trim().isEmpty) return;
+
+    // Obtener documentos existentes
+    final snapshot = await _ref.get();
+
+    // Buscar el siguiente número disponible
+    int nextNumber = 1;
+    final existingIds = snapshot.docs.map((doc) => doc.id).toList();
+
+    while (existingIds.contains('Ubicacion $nextNumber')) {
+      nextNumber++;
+    }
+
+    final newId = 'Ubicacion $nextNumber';
+
+    await _ref.doc(newId).set({
+      'Nombre': nombre.trim(),
+      'Descripcion': descripcion.trim(),
     });
   }
 
+  /// ✏️ Editar campos (nombre, descripción) pero mantener ID fijo
   Future<void> update({
     required String id,
-    String? nombre,
-    String? descripcion,
+    required String nombre,
+    required String descripcion,
   }) async {
-    final data = <String, dynamic>{
-      'updatedAt': FieldValue.serverTimestamp(),
-    };
-    if (nombre != null) data['Nombre'] = nombre;
-    if (descripcion != null) data['Descripcion'] = descripcion;
-    await _db.collection(_collection).doc(id).set(data, SetOptions(merge: true));
+    await _ref.doc(id).update({
+      'Nombre': nombre.trim(),
+      'Descripcion': descripcion.trim(),
+    });
   }
 
+  /// 🗑️ Eliminar ubicación
   Future<void> delete(String id) async {
-    await _db.collection(_collection).doc(id).delete();
+    await _ref.doc(id).delete();
   }
 }
